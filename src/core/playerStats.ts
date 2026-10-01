@@ -25,6 +25,15 @@ export class PlayerStats {
     return 1 + this.magnetLevel;
   }
 
+  levelOf(id: PerkId): number {
+    if (id === 'longer_chain') return this.chainReachLevel;
+    if (id === 'heavy_spikes') return this.spikeLevel;
+    if (id === 'double_morningstar') return this.hasDoubleFlail ? 1 : 0;
+    if (id === 'drunken_dash') return this.hasDash ? 1 : 0;
+    if (id === 'spike_boots') return this.bootsLevel;
+    return this.magnetLevel;
+  }
+
   isPerkAvailable(id: PerkId): boolean {
     if (id === 'longer_chain') return this.chainReachLevel < MAX_CHAIN_REACH_LEVEL;
     if (id === 'double_morningstar') return !this.hasDoubleFlail;

@@ -108,10 +108,21 @@
 
 ---
 
-### [ ] QOL 2: Acquired Perks Tray in HUD
+### [x] QOL 2: Acquired Perks Tray in HUD
 - **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
 - **Scope:**
   - Add a stylized bottom tray / dock in the HUD displaying all currently acquired perks as compact badge slots.
   - Each badge shows the perk icon and a level counter (e.g., I, II, III).
   - Automatically updates whenever a new perk is selected from the Level Up modal.
 - **Verification:** Picking perks in the modal immediately populates/increments badges in the bottom tray cleanly.
+
+---
+
+### [ ] QOL 3: Drunken Dash Whirlwind & Ground-Clipping Fix
+- **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
+- **Scope:**
+  - Fix ground clipping during Spacebar dash: elevate knight with a parabolic jump arc (y > 0) so the mesh stays above the tavern floor.
+  - Turn dash into a powerful Whirlwind / Cyclone strike: knight rapidly spins (yaw) during the dash, whipping the flail(s) into a full 360° orbit with high centrifugal velocity.
+  - Dash collision: crashing into enemies during dash deals heavy knockback and damage.
+  - Enable pointer-events: auto on perk tray slots so hovering shows the tooltip.
+- **Verification:** Spacebar dash leaps cleanly above the floor, spins the flail in a devastating 360° sweep, and clears enemies out of the path.

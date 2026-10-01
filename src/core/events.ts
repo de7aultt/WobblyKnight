@@ -1,3 +1,5 @@
+import type { PerkId } from './perks';
+
 export interface ProgressSnapshot {
   level: number;
   xp: number;
@@ -12,6 +14,7 @@ export interface GameEvents {
   ENEMY_DEFEATED: { x: number; z: number };
   PROGRESS_CHANGED: ProgressSnapshot;
   LEVEL_UP: { level: number };
+  PERK_ACQUIRED: { perkId: PerkId; level: number };
 }
 
 type Handler<Payload> = (payload: Payload) => void;

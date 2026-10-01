@@ -53,6 +53,7 @@ function bootstrap(): void {
     stats.apply(perkId);
     player.applyStats();
     input.setEnabled(true);
+    events.emit('PERK_ACQUIRED', { perkId, level: stats.levelOf(perkId) });
   }
 
   events.on('GAME_START', () => {

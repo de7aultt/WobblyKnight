@@ -90,7 +90,98 @@
   border-radius: 0 6px 6px 0;
 }
 
+.perk-tray {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 94vw;
+  padding: 0.5rem 0.7rem;
+  background: linear-gradient(180deg, #4a2e1a 0%, #2f1c10 100%);
+  border: 2px solid #6b2d0f;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 2px rgba(255, 198, 107, 0.12), 0 6px 18px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.perk-tray:empty {
+  display: none;
+}
+
+.perk-slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(180deg, #f3dfb4 0%, #d9b97f 100%);
+  border: 3px solid #6b2d0f;
+  border-radius: 10px;
+  box-shadow: 0 3px 0 #2a1408;
+}
+
+.perk-slot--offense {
+  border-color: #a3232c;
+}
+
+.perk-slot--mobility {
+  border-color: #2f6f9a;
+}
+
+.perk-slot--utility {
+  border-color: #3f7a3a;
+}
+
+.perk-slot__icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.perk-slot__badge {
+  position: absolute;
+  right: -0.45rem;
+  bottom: -0.45rem;
+  min-width: 1.3rem;
+  padding: 0 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 900;
+  line-height: 1.2rem;
+  text-align: center;
+  color: #2a1408;
+  background: linear-gradient(180deg, #ffc66b 0%, #e8821f 100%);
+  border: 2px solid #6b2d0f;
+  border-radius: 999px;
+}
+
+.perk-slot--pop {
+  animation: perk-slot-pop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes perk-slot-pop {
+  0% {
+    transform: scale(0.2);
+  }
+
+  60% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
 @media (max-width: 640px) {
+  .perk-slot {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
   .hud {
     gap: 0.6rem;
     padding: 0.45rem 0.7rem;
