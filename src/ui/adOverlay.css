@@ -1,0 +1,29 @@
+.ad-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: #f6e3c0;
+  background: rgba(8, 6, 12, 0.96);
+}
+
+.ad-overlay__label {
+  padding: 0.2rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #2a1408;
+  background: #ffc66b;
+  border-radius: 999px;
+}
+
+.ad-overlay__message {
+  font-size: clamp(1.4rem, 4vw, 2.4rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}

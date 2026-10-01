@@ -1,0 +1,67 @@
+.hearts {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.35rem 0.7rem;
+  background: rgba(17, 13, 24, 0.72);
+  border: 2px solid #6b2d0f;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.heart {
+  display: inline-block;
+  font-size: 2rem;
+  line-height: 1;
+  color: #e63946;
+  text-shadow: 0 2px 0 #5c0f18, 0 0 10px rgba(255, 70, 80, 0.55);
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.heart--empty {
+  color: #3a2a33;
+  text-shadow: 0 2px 0 #1a1018;
+}
+
+.heart--hit {
+  animation: heart-shake 0.45s ease-out;
+}
+
+@keyframes heart-shake {
+  0% {
+    transform: translateX(0) scale(1.35);
+  }
+
+  20% {
+    transform: translateX(-6px) rotate(-10deg) scale(1.25);
+  }
+
+  40% {
+    transform: translateX(6px) rotate(10deg) scale(1.15);
+  }
+
+  60% {
+    transform: translateX(-4px) rotate(-6deg);
+  }
+
+  80% {
+    transform: translateX(3px) rotate(4deg);
+  }
+
+  100% {
+    transform: translateX(0) rotate(0) scale(1);
+  }
+}
+
+@media (max-width: 900px) {
+  .hearts {
+    top: 4.6rem;
+  }
+
+  .heart {
+    font-size: 1.6rem;
+  }
+}

@@ -1,6 +1,7 @@
 import './hud.css';
 import type { GameEventBus, ProgressSnapshot } from '../core/events';
 import { t } from '../i18n';
+import { mountHearts } from './hearts';
 import { mountPerkTray } from './perkTray';
 
 function createElement(tag: keyof HTMLElementTagNameMap, className: string): HTMLElement {
@@ -29,6 +30,7 @@ export function mountHud(root: HTMLElement, events: GameEventBus, initial: Progr
   hud.append(badge, xp, mugs);
   root.append(hud);
   mountPerkTray(root, events);
+  mountHearts(root, events);
 
   function render(progress: ProgressSnapshot): void {
     badge.textContent = `${t('hud.levelShort')} ${progress.level}`;

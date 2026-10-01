@@ -81,6 +81,12 @@ export function mountPerkTray(root: HTMLElement, events: GameEventBus): void {
     replayAnimation(slot.element, 'perk-slot--pop');
   });
 
+  events.on('RUN_RESET', () => {
+    slots.clear();
+    tray.replaceChildren();
+    previousCooldownRatio = 0;
+  });
+
   events.on('DASH_COOLDOWN', ({ ratio }) => {
     const slot = slots.get('drunken_dash');
     if (!slot?.cooldownOverlay || ratio === previousCooldownRatio) return;

@@ -20,6 +20,13 @@ export class Progression {
     return { level: this.level, xp: this.xp, xpTarget: xpTargetForLevel(this.level), mugs: this.mugs };
   }
 
+  reset(): void {
+    this.level = 1;
+    this.xp = 0;
+    this.mugs = 0;
+    this.events.emit('PROGRESS_CHANGED', this.snapshot());
+  }
+
   collectMug(): void {
     this.mugs += 1;
     this.addXp(1);

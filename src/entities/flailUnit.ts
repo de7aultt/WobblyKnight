@@ -18,6 +18,21 @@ export class FlailUnit {
     this.visual.sync(this.chain, 0);
   }
 
+  reset(): void {
+    this.visual.handleTip.updateWorldMatrix(true, false);
+    this.chain.reset(this.visual.handleTip.getWorldPosition(this.anchorPosition));
+    this.visual.sync(this.chain, 0);
+  }
+
+  dispose(): void {
+    [this.visual.handle, this.visual.chainRoot].forEach((root) => {
+      root.removeFromParent();
+      root.traverse((object) => {
+        if (object instanceof THREE.Mesh) object.geometry.dispose();
+      });
+    });
+  }
+
   setReach(multiplier: number): void {
     this.chain.setReachMultiplier(multiplier);
   }

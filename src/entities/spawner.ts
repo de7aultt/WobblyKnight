@@ -35,6 +35,7 @@ export class Spawner {
   private defeatedCount = 0;
   private reachedLevel = 1;
   private readonly spawnPoint = new THREE.Vector2();
+  private readonly clearedEnemies = new Set<Enemy>();
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -48,6 +49,35 @@ export class Spawner {
   activate(playerPosition: THREE.Vector3): void {
     this.active = true;
     for (let index = 0; index < INITIAL_GOBLINS; index++) this.spawn('goblin', playerPosition);
+  }
+
+  reset(): void {
+    this.enemies.forEach((enemy) => enemy.dispose());
+    this.enemies.length = 0;
+    this.targets.length = 0;
+    this.clearedEnemies.clear();
+    this.boss?.dispose();
+    this.boss = null;
+    this.active = false;
+    this.bossTriggered = false;
+    this.elapsed = 0;
+    this.spawnTimer = 0;
+    this.defeatedCount = 0;
+    this.reachedLevel = 1;
+  }
+
+  shockwave(center: THREE.Vector3, radius: number, force: number, staggerSeconds: number): void {
+    for (const enemy of this.enemies) {
+      if (!enemy.isCollidable) continue;
+      const deltaX = enemy.position.x - center.x;
+      const deltaZ = enemy.position.z - center.z;
+      const distance = Math.hypot(deltaX, deltaZ);
+      if (distance > radius) continue;
+      const directionX = distance > 1e-4 ? deltaX / distance : 1;
+      const directionZ = distance > 1e-4 ? deltaZ / distance : 0;
+      enemy.shove(directionX, directionZ, force * (1 - (distance / radius) * 0.5));
+      enemy.stagger(staggerSeconds);
+    }
   }
 
   update(deltaSeconds: number, playerPosition: THREE.Vector3, knightInvulnerable: boolean): void {
@@ -73,6 +103,7 @@ export class Spawner {
   private startBossEvent(playerPosition: THREE.Vector3): void {
     this.bossTriggered = true;
     this.enemies.forEach((enemy) => {
+      this.clearedEnemies.add(enemy);
       enemy.state = 'DEAD';
     });
 
@@ -99,7 +130,8 @@ export class Spawner {
       enemy.update(deltaSeconds, playerPosition);
       if (enemy.state !== 'DEAD') continue;
       this.defeatedCount += 1;
-      this.events.emit('ENEMY_DEFEATED', { x: enemy.position.x, z: enemy.position.z });
+      const smashed = !this.clearedEnemies.delete(enemy);
+      this.events.emit('ENEMY_DEFEATED', { x: enemy.position.x, z: enemy.position.z, smashed });
       enemy.dispose();
       this.enemies.splice(index, 1);
     }

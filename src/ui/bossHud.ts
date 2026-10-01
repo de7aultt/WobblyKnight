@@ -38,6 +38,10 @@ export function mountBossHud(root: HTMLElement, events: GameEventBus): void {
     showBanner(t('boss.warning'), t('boss.incoming'));
   });
   events.on('BOSS_HEALTH', ({ ratio }) => setRatio(ratio));
+  events.on('RUN_RESET', () => {
+    panel.classList.add('boss-hud--hidden');
+    root.querySelectorAll('.boss-banner').forEach((banner) => banner.remove());
+  });
   events.on('BOSS_DEFEATED', () => {
     panel.classList.add('boss-hud--hidden');
     showBanner(t('boss.defeatedBanner'), t('boss.rewardLine'));

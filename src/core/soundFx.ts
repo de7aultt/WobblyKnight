@@ -1,31 +1,11 @@
 import { getAudioContext } from './audio';
 import { createSynthContext, playNoise, playTone, type SynthContext } from './soundSynth';
 
-const WHOOSH_MIN_RATIO = 0.65;
-const WHOOSH_INTERVAL_SECONDS = 0.32;
 const LEVEL_UP_NOTES: readonly number[] = [523.25, 659.25, 783.99, 1046.5];
 const CLANG_PARTIALS: readonly number[] = [180, 270, 410, 655];
 
 export class SoundFx {
   private synth: SynthContext | null = null;
-  private lastWhooshTime = Number.NEGATIVE_INFINITY;
-
-  playWhoosh(speedRatio: number): void {
-    const synth = this.resolve();
-    if (!synth || speedRatio < WHOOSH_MIN_RATIO) return;
-    const now = synth.ctx.currentTime;
-    if (now - this.lastWhooshTime < WHOOSH_INTERVAL_SECONDS) return;
-    this.lastWhooshTime = now;
-    playNoise(synth, {
-      filter: 'lowpass',
-      from: 400,
-      to: 120,
-      duration: 0.3,
-      gain: 0.05 + speedRatio * 0.05,
-      quality: 0.7,
-      attack: 0.06
-    });
-  }
 
   playHit(heavy: boolean): void {
     const synth = this.resolve();

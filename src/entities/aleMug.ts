@@ -128,6 +128,11 @@ export class AleMugField {
     return mug;
   }
 
+  clear(): void {
+    this.mugs.forEach((mug) => mug.dispose());
+    this.mugs.length = 0;
+  }
+
   spawnBurst(x: number, z: number, count: number): void {
     for (let index = 0; index < count; index++) {
       const angle = Math.random() * Math.PI * 2;

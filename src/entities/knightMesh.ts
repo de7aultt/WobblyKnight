@@ -37,6 +37,10 @@ const materials = {
   leather: material(palette.leather, 0, 0.9)
 };
 
+export function setKnightFlash(level: number): void {
+  Object.values(materials).forEach((material) => material.emissive.setRGB(level * 0.85, level * 0.05, level * 0.05));
+}
+
 function part(geometry: THREE.BufferGeometry, partMaterial: THREE.Material, x: number, y: number, z: number): THREE.Mesh {
   const mesh = new THREE.Mesh(geometry, partMaterial);
   mesh.position.set(x, y, z);

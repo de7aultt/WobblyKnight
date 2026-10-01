@@ -71,7 +71,7 @@
 
 ---
 
-### [ ] Sprint 6: Monetization Slots & Game Over Loop
+### [x] Sprint 6: Monetization Slots & Game Over Loop
 - **Recommended Model:** `Claude 3.5 Sonnet`
 - **Scope:**
   - Knight health system with chunky heart icons in HUD.
@@ -145,3 +145,12 @@
   - Soften whoosh filter and raise activation threshold to avoid continuous scraping.
   - Redesign enemy hit sound into a punchy physical bass thud and crunch.
 - **Verification:** Hit sounds feel punchy; walking is quiet.
+
+---
+
+### [ ] QOL 6: Fair Combat Damage (Contact Delay 0.7s & 3 Hearts)
+- **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
+- **Scope:**
+  - Reduce max hearts to 3 (starts with 3 hearts).
+  - Add 0.7-second contact timer before enemy deals damage: touching the knight does not instantly deal damage; the enemy must stay in contact for 0.7s continuously to land a hit, giving the player time to react and spin flail/dash.
+- **Verification:** Contact damage feels fair; player can brush past or whip away mobs without instantly losing a heart.

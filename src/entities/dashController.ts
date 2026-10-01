@@ -29,6 +29,11 @@ export class DashController {
     return this.isActive ? Math.sin(this.progress * Math.PI) * DASH_JUMP_HEIGHT : 0;
   }
 
+  reset(): void {
+    this.remaining = 0;
+    this.cooldown = 0;
+  }
+
   tick(deltaSeconds: number): void {
     this.cooldown = Math.max(0, this.cooldown - deltaSeconds);
     this.remaining = Math.max(0, this.remaining - deltaSeconds);

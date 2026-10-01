@@ -7,7 +7,7 @@ import { WobblySpring } from '../physics/wobblySpring';
 import { DASH_SPEED, DASH_SPIN_RATE, DashController } from './dashController';
 import { FlailUnit } from './flailUnit';
 import { animateKnight, type KnightPose } from './knightAnimator';
-import { createKnightMesh, type KnightRig } from './knightMesh';
+import { createKnightMesh, setKnightFlash, type KnightRig } from './knightMesh';
 
 const MAX_SPEED = 7;
 const ACCELERATION_RATE = 10;
@@ -16,6 +16,8 @@ const TURN_SPEED = 14;
 const KNIGHT_RADIUS = 0.7;
 const WALK_CYCLE_RATE = 2.2;
 const KNOCK_DECAY = 5;
+const TUMBLE_RATE = 9;
+const TUMBLE_LIFT = 0.7;
 
 function shortestAngle(from: number, to: number): number {
   const difference = to - from;
@@ -27,7 +29,7 @@ export class Player {
   readonly chains: FlailChain[] = [];
   private readonly units: FlailUnit[] = [];
   private readonly dash = new DashController();
-  private readonly wobble = new WobblySpring();
+  private wobble = new WobblySpring();
   private readonly velocity = new THREE.Vector3();
   private readonly previousVelocity = new THREE.Vector3();
   private readonly acceleration = new THREE.Vector3();
@@ -36,6 +38,8 @@ export class Player {
   private readonly knockVelocity = new THREE.Vector3();
   private readonly pose: KnightPose = { walkPhase: 0, speedRatio: 0, tilt: { pitch: 0, roll: 0 } };
   private yaw = 0;
+  private knockedOut = false;
+  private tumble = 0;
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -56,8 +60,36 @@ export class Player {
     return this.dash.isActive;
   }
 
-  get flailSpeed(): number {
-    return this.chains.reduce((fastest, chain) => Math.max(fastest, chain.tipSpeed), 0);
+  setKnockedOut(knockedOut: boolean): void {
+    this.knockedOut = knockedOut;
+  }
+
+  setDamageFlash(level: number): void {
+    setKnightFlash(level);
+  }
+
+  reset(): void {
+    while (this.units.length > 1) {
+      this.units.pop()?.dispose();
+      this.chains.pop();
+    }
+    this.velocity.set(0, 0, 0);
+    this.previousVelocity.set(0, 0, 0);
+    this.acceleration.set(0, 0, 0);
+    this.knockVelocity.set(0, 0, 0);
+    this.wobble = new WobblySpring();
+    this.dash.reset();
+    this.knockedOut = false;
+    this.tumble = 0;
+    this.yaw = 0;
+    this.rig.root.position.set(0, 0, 0);
+    this.rig.root.rotation.set(0, 0, 0);
+    this.rig.root.updateMatrixWorld(true);
+    this.units.forEach((unit) => {
+      unit.setReach(this.stats.chainReach);
+      unit.reset();
+    });
+    setKnightFlash(0);
   }
 
   knockback(directionX: number, directionZ: number, speed: number): void {
@@ -83,16 +115,20 @@ export class Player {
   update(deltaSeconds: number): void {
     if (deltaSeconds <= 0) return;
     this.input.getMoveDirection(this.moveDirection);
+    if (this.knockedOut) this.moveDirection.set(0, 0, 0);
     this.dash.tick(deltaSeconds);
-    if (this.input.consumeDashRequest() && this.stats.hasDash) this.startDash();
+    const dashWanted = this.input.consumeDashRequest();
+    if (dashWanted && this.stats.hasDash && !this.knockedOut) this.startDash();
 
     const dashing = this.dash.isActive;
     if (dashing) this.updateDash(deltaSeconds);
     else this.updateMovement(deltaSeconds);
     const yawRate = dashing ? 0 : this.updateFacing(deltaSeconds);
 
+    this.tumble += ((this.knockedOut ? 1 : 0) - this.tumble) * (1 - Math.exp(-TUMBLE_RATE * deltaSeconds));
     this.rig.root.rotation.y = this.yaw;
-    this.rig.root.position.y = this.dash.height;
+    this.rig.root.rotation.z = this.tumble * (Math.PI / 2);
+    this.rig.root.position.y = this.dash.height + this.tumble * TUMBLE_LIFT;
     this.updatePose(deltaSeconds, yawRate);
 
     this.rig.root.updateMatrixWorld(true);

@@ -46,7 +46,7 @@ export function mountUpgradeModal(options: UpgradeModalOptions): void {
     overlay?.remove();
     overlay = null;
     window.removeEventListener('keydown', handleKey);
-    loop.setPaused(false);
+    loop.resume();
   }
 
   function choose(perk: PerkDefinition): void {
@@ -62,7 +62,7 @@ export function mountUpgradeModal(options: UpgradeModalOptions): void {
 
   function open(level: number): void {
     if (overlay) return;
-    loop.setPaused(true);
+    loop.pause();
     offeredPerks = drawPerks(CARD_COUNT, (id) => stats.isPerkAvailable(id));
 
     const cards = createElement('div', 'upgrade-modal__cards');
@@ -81,4 +81,7 @@ export function mountUpgradeModal(options: UpgradeModalOptions): void {
   }
 
   events.on('LEVEL_UP', ({ level }) => open(level));
+  events.on('RUN_RESET', () => {
+    if (overlay) close();
+  });
 }

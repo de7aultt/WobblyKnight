@@ -11,7 +11,7 @@ export interface GameEvents {
   GAME_START: void;
   RESIZE: { width: number; height: number };
   TICK: { delta: number; elapsed: number };
-  ENEMY_DEFEATED: { x: number; z: number };
+  ENEMY_DEFEATED: { x: number; z: number; smashed: boolean };
   PROGRESS_CHANGED: ProgressSnapshot;
   LEVEL_UP: { level: number };
   PERK_ACQUIRED: { perkId: PerkId; level: number };
@@ -19,7 +19,10 @@ export interface GameEvents {
   MUG_COLLECTED: void;
   ENEMY_HIT: { heavy: boolean };
   DASH_STARTED: void;
-  FLAIL_SPEED: { speed: number };
+  HEALTH_CHANGED: { current: number; max: number; damaged: boolean };
+  KNOCKED_OUT: void;
+  KNIGHT_REVIVED: void;
+  RUN_RESET: void;
   BOSS_SPAWNED: void;
   BOSS_LANDED: void;
   BOSS_TELEGRAPH: void;

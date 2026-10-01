@@ -9,7 +9,7 @@ export class GameLoop {
   private lastTimestamp = 0;
   private elapsed = 0;
   private running = false;
-  private paused = false;
+  private pauseCount = 0;
 
   onTick(callback: TickCallback): void {
     this.tickCallbacks.push(callback);
@@ -20,11 +20,15 @@ export class GameLoop {
   }
 
   get isPaused(): boolean {
-    return this.paused;
+    return this.pauseCount > 0;
   }
 
-  setPaused(paused: boolean): void {
-    this.paused = paused;
+  pause(): void {
+    this.pauseCount += 1;
+  }
+
+  resume(): void {
+    this.pauseCount = Math.max(0, this.pauseCount - 1);
   }
 
   start(): void {
@@ -44,7 +48,7 @@ export class GameLoop {
     const rawDelta = (timestamp - this.lastTimestamp) / 1000;
     const delta = Math.min(Math.max(rawDelta, 0), MAX_DELTA_SECONDS);
     this.lastTimestamp = timestamp;
-    if (!this.paused) {
+    if (this.pauseCount === 0) {
       this.elapsed += delta;
       this.tickCallbacks.forEach((callback) => callback(delta, this.elapsed));
     }

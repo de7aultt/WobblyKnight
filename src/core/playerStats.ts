@@ -34,6 +34,15 @@ export class PlayerStats {
     return this.magnetLevel;
   }
 
+  reset(): void {
+    this.chainReachLevel = 0;
+    this.spikeLevel = 0;
+    this.bootsLevel = 0;
+    this.magnetLevel = 0;
+    this.hasDoubleFlail = false;
+    this.hasDash = false;
+  }
+
   isPerkAvailable(id: PerkId): boolean {
     if (id === 'longer_chain') return this.chainReachLevel < MAX_CHAIN_REACH_LEVEL;
     if (id === 'double_morningstar') return !this.hasDoubleFlail;
