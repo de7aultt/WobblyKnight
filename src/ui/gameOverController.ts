@@ -72,7 +72,7 @@ export function mountGameOverController(options: GameOverControllerOptions): voi
     runStats.markCredited();
     closeModal = openGameOverModal(
       root,
-      { summary, best: highScores.snapshot(), record, canRevive: !reviveUsed, canDoubleAle: !doubleUsed },
+      { summary, best: highScores.snapshot(), record, canRevive: ads.isRewardedAvailable() && !reviveUsed, canDoubleAle: ads.isRewardedAvailable() && !doubleUsed },
       actions
     );
   }

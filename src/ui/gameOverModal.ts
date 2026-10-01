@@ -122,7 +122,9 @@ export function openGameOverModal(root: HTMLElement, view: GameOverView, actions
   const panels = createElement('div', 'game-over__panels');
   panels.append(runPanel, bestPanel);
   const buttons = createElement('div', 'game-over__actions');
-  buttons.append(reviveButton, doubleButton, restartButton, tavernButton);
+  if (view.canRevive) buttons.append(reviveButton);
+  if (view.canDoubleAle) buttons.append(doubleButton);
+  buttons.append(restartButton, tavernButton);
   overlay.append(createElement('h2', 'game-over__banner', t('gameOver.banner')), panels, buttons);
 
   renderValues(view.summary, view.best);

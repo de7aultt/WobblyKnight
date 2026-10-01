@@ -25,6 +25,8 @@ declare global {
   }
 }
 
+export const ADS_ENABLED = false;
+
 const MOCK_AD_DURATION_MS = 2500;
 const RUN_COUNTER_KEY = 'wobbly-knight.completed-runs';
 const MIDROLL_EVERY_N_RUNS = 2;
@@ -59,6 +61,10 @@ export class AdService {
     this.syncGameplay();
   }
 
+  isRewardedAvailable(): boolean {
+    return ADS_ENABLED && this.ready;
+  }
+
   async showRewarded(placement: AdPlacement): Promise<boolean> {
     const sdk = this.findSdk();
     if (sdk) return this.requestSdkAd(sdk, 'rewarded');
@@ -67,6 +73,7 @@ export class AdService {
   }
 
   async showMidroll(): Promise<void> {
+    if (!ADS_ENABLED) return;
     const sdk = this.findSdk();
     if (sdk) {
       await this.requestSdkAd(sdk, 'midgame');
@@ -76,6 +83,7 @@ export class AdService {
   }
 
   async beforeRestart(): Promise<void> {
+    if (!ADS_ENABLED) return;
     const completedRuns = readJson<number>(RUN_COUNTER_KEY, 0) + 1;
     writeJson(RUN_COUNTER_KEY, completedRuns);
     if (completedRuns % MIDROLL_EVERY_N_RUNS === 0) await this.showMidroll();
