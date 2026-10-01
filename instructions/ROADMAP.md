@@ -244,3 +244,15 @@
   - Reduce explosive ale bottle shatter sound volume by 3x (down to ~33% gain).
   - Enemy contact windup delay tuned to 0.4s (completed in Sprint 12).
 - **Verification:** Pressing ESC freezes fight and opens pause menu with resume, settings, and retreat with banked loot.
+
+---
+
+## Production Release
+
+### [x] CrazyGames v1.0.0 Release (Basic Launch)
+- **Target:** CrazyGames Developer Portal
+- **Date:** 2026-10-01
+- **Artifact:** `wobbly-knight-web.zip` (171 KB, clean zero-dependency web archive)
+- **Status:** Submitted to QA Review
+- **Next Operational Milestone:** Transition to Full Launch after 20-day trial period; toggle `ADS_ENABLED = true` in `src/core/ads.ts` to activate rewarded ads and revenue share.
+
