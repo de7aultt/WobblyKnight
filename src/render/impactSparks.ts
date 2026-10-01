@@ -39,6 +39,15 @@ export class ImpactSparks {
     }
   }
 
+  burstRing(center: THREE.Vector3, radius: number, count: number, intensity: number): void {
+    const point = new THREE.Vector3();
+    for (let index = 0; index < count; index++) {
+      const angle = (index / count) * Math.PI * 2;
+      point.set(center.x + Math.cos(angle) * radius, center.y + 0.5, center.z + Math.sin(angle) * radius);
+      this.burst(point, intensity);
+    }
+  }
+
   update(deltaSeconds: number): void {
     this.particles.forEach((particle) => {
       if (particle.life <= 0) return;

@@ -10,6 +10,7 @@ export const DASH_SPIN_RATE = (Math.PI * 2 * DASH_SPIN_ROTATIONS) / DASH_SECONDS
 
 export class DashController {
   private cooldownTotal = BASE_DASH_COOLDOWN_SECONDS;
+  private duration = DASH_SECONDS;
   readonly direction = new THREE.Vector3();
   private remaining = 0;
   private cooldown = 0;
@@ -19,7 +20,7 @@ export class DashController {
   }
 
   get progress(): number {
-    return this.isActive ? 1 - this.remaining / DASH_SECONDS : 0;
+    return this.isActive ? 1 - this.remaining / this.duration : 0;
   }
 
   get cooldownRatio(): number {
@@ -40,10 +41,11 @@ export class DashController {
     this.remaining = Math.max(0, this.remaining - deltaSeconds);
   }
 
-  tryStart(wantedDirection: THREE.Vector3, cooldownSeconds: number): boolean {
+  tryStart(wantedDirection: THREE.Vector3, cooldownSeconds: number, durationSeconds = DASH_SECONDS): boolean {
     if (this.cooldown > 0 || this.remaining > 0 || wantedDirection.lengthSq() === 0) return false;
     this.direction.copy(wantedDirection).normalize();
-    this.remaining = DASH_SECONDS;
+    this.duration = durationSeconds;
+    this.remaining = durationSeconds;
     this.cooldownTotal = cooldownSeconds;
     this.cooldown = cooldownSeconds;
     return true;

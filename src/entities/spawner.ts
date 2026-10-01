@@ -66,6 +66,13 @@ export class Spawner {
     this.reachedLevel = 1;
   }
 
+  stunEnemies(center: THREE.Vector3, radius: number, seconds: number): void {
+    for (const enemy of this.enemies) {
+      const distance = Math.hypot(enemy.position.x - center.x, enemy.position.z - center.z);
+      if (distance <= radius) enemy.stun(seconds);
+    }
+  }
+
   shockwave(center: THREE.Vector3, radius: number, force: number, staggerSeconds: number): void {
     for (const enemy of this.enemies) {
       if (!enemy.isCollidable) continue;

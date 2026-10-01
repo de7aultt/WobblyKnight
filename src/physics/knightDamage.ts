@@ -6,7 +6,7 @@ export const CONTACT_WINDUP_SECONDS = 0.7;
 const CONTACT_REACH = 1.3;
 
 function isTouching(enemy: Enemy, knightPosition: THREE.Vector3): boolean {
-  if (enemy.state !== 'CHASING') return false;
+  if (enemy.state !== 'CHASING' || enemy.isStunned) return false;
   const deltaX = knightPosition.x - enemy.position.x;
   const deltaZ = knightPosition.z - enemy.position.z;
   return Math.hypot(deltaX, deltaZ) < enemy.type.radius + CONTACT_REACH;

@@ -71,6 +71,13 @@ export class MetaProgression {
     return true;
   }
 
+  spendMugs(amount: number): boolean {
+    if (amount < 0 || this.state.aleMugsBank < amount) return false;
+    this.state.aleMugsBank -= amount;
+    this.persist();
+    return true;
+  }
+
   depositMugs(amount: number): void {
     if (amount <= 0) return;
     this.state.aleMugsBank += Math.floor(amount);

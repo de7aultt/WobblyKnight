@@ -1,4 +1,5 @@
 import { BASE_DASH_COOLDOWN_SECONDS } from './baseStats';
+import type { WeaponEffects } from './armoryItems';
 import type { EffectiveMetaStats } from './metaProgression';
 import type { PerkId } from './perks';
 
@@ -16,16 +17,20 @@ export class PlayerStats {
   magnetLevel = 0;
   hasDoubleFlail = false;
   armorLevel = 0;
+  weaponImpactMultiplier = 1;
+  weaponReach = 1;
+  weaponDual = false;
+  knockbackBuff = 1;
   metaDamageMultiplier = 1;
   metaMagnetRadiusMultiplier = 1;
   dashCooldownSeconds = BASE_DASH_COOLDOWN_SECONDS;
 
   get chainReach(): number {
-    return 1 + this.chainReachLevel * CHAIN_REACH_PER_LEVEL;
+    return (1 + this.chainReachLevel * CHAIN_REACH_PER_LEVEL) * this.weaponReach;
   }
 
   get impactMultiplier(): number {
-    return (1 + this.spikeLevel * IMPACT_PER_LEVEL) * this.metaDamageMultiplier;
+    return (1 + this.spikeLevel * IMPACT_PER_LEVEL) * this.metaDamageMultiplier * this.weaponImpactMultiplier;
   }
 
   get contactWindupMultiplier(): number {
@@ -38,6 +43,12 @@ export class PlayerStats {
 
   get magnetRadiusMultiplier(): number {
     return this.magnetMultiplier * this.metaMagnetRadiusMultiplier;
+  }
+
+  applyWeapon(effects: WeaponEffects): void {
+    this.weaponImpactMultiplier = effects.impactMultiplier;
+    this.weaponReach = effects.reachMultiplier;
+    this.weaponDual = effects.dual;
   }
 
   applyMeta(meta: EffectiveMetaStats): void {
@@ -62,11 +73,12 @@ export class PlayerStats {
     this.magnetLevel = 0;
     this.hasDoubleFlail = false;
     this.armorLevel = 0;
+    this.knockbackBuff = 1;
   }
 
   isPerkAvailable(id: PerkId): boolean {
     if (id === 'longer_chain') return this.chainReachLevel < MAX_CHAIN_REACH_LEVEL;
-    if (id === 'double_morningstar') return !this.hasDoubleFlail;
+    if (id === 'double_morningstar') return !this.hasDoubleFlail && !this.weaponDual;
     if (id === 'iron_armor') return this.armorLevel < MAX_ARMOR_LEVEL;
     if (id === 'spike_boots') return this.bootsLevel < MAX_BOOTS_LEVEL;
     return true;

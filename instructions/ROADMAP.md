@@ -122,7 +122,7 @@
 
 ---
 
-### [ ] Sprint 10: Tavern Armory Tabs (Heroes, Weapons, Arenas)
+### [x] Sprint 10: Tavern Armory Tabs (Heroes, Weapons, Arenas)
 - **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
 - **Scope:**
   - Expand Tavern Shop into 4 distinct tabs:
@@ -153,6 +153,22 @@
     * **Wave 15+:** *The Executioner* (Huge iron axe, wide 360° sweeping whirlwind attack).
   - Dynamic boss HUD updates with unique titles and crimson health bars.
 - **Verification:** Progressing past level 5, 10, and 15 spawns their respective bosses with unique mechanics.
+
+---
+
+### [ ] Sprint 12: Enemy Horde Expansion & New Roguelite Perks
+- **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
+- **Scope:**
+  - 3 new enemy archetypes unlocking after boss milestones:
+    * *Drunken Bomber* (Spawns post-Wave 5): Throws wobbly ale bottles that detonate with a small damage radius.
+    * *Armored Shield Guard* (Spawns post-Wave 10): Frontal wooden shield that deflects low-speed hits.
+    * *Vampire Ghoul* (Spawns post-Wave 15): Fast, erratic zig-zag lunges.
+  - 4 new in-run roguelite perks in the 3-card level-up pool:
+    * *Static Spark:* Flail hits arc lightning sparks to 1 nearby enemy.
+    * *Vampiric Ale:* 5% chance on kill to restore 1 Heart.
+    * *Spike Boots:* Shove deals damage (improved).
+    * *Cleave Momentum:* Every consecutive smash increases swing speed by 5% (up to 30%).
+- **Verification:** New enemies appear after their respective boss waves; new perks offer synergistic build variety.
 
 ---
 

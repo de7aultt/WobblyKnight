@@ -13,6 +13,7 @@ export function wireSoundEvents(events: GameEventBus, sound: SoundFx): void {
   events.on('KNIGHT_REVIVED', () => sound.playLevelUp());
   events.on('SHOP_PURCHASE', () => sound.playMugPickup());
   events.on('SETTINGS_CHANGED', ({ muted, masterVolume }) => sound.setAudio(muted, masterVolume));
+  events.on('HOLY_STOMP', () => sound.playBossStun());
   events.on('BOSS_SPAWNED', () => sound.playBossRoar());
   events.on('BOSS_TELEGRAPH', () => sound.playBossRoar());
   events.on('BOSS_DEFEATED', () => sound.playBossRoar());

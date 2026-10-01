@@ -1,13 +1,24 @@
 import * as THREE from 'three';
+import { findWeapon, type HeroId, type WeaponId } from '../core/armoryItems';
 import type { Input } from '../core/input';
 import type { PlayerStats } from '../core/playerStats';
 import { clampToArena } from '../physics/arenaBounds';
 import type { FlailChain } from '../physics/flailChain';
 import { WobblySpring } from '../physics/wobblySpring';
 import { DASH_SPEED, DASH_SPIN_RATE, DashController } from './dashController';
-import { FlailUnit } from './flailUnit';
+import {
+  FRENZY_GLOW_BASE,
+  FRENZY_GLOW_PULSE,
+  FRENZY_KNOCKBACK_MULTIPLIER,
+  FRENZY_SPEED_MULTIPLIER,
+  SKILL_BY_HERO,
+  skillDurationSeconds,
+  type SkillKind
+} from './heroSkill';
 import { animateKnight, type KnightPose } from './knightAnimator';
 import { createKnightMesh, setKnightFlash, type KnightRig } from './knightMesh';
+import { applyHeroVariant } from './knightVariants';
+import { WeaponLoadout } from './weaponLoadout';
 
 const MAX_SPEED = 7;
 const ACCELERATION_RATE = 10;
@@ -18,6 +29,7 @@ const WALK_CYCLE_RATE = 2.2;
 const KNOCK_DECAY = 5;
 const TUMBLE_RATE = 9;
 const TUMBLE_LIFT = 0.7;
+const GLOW_PULSE_RATE = 14;
 
 function shortestAngle(from: number, to: number): number {
   const difference = to - from;
@@ -26,8 +38,8 @@ function shortestAngle(from: number, to: number): number {
 
 export class Player {
   readonly rig: KnightRig;
-  readonly chains: FlailChain[] = [];
-  private readonly units: FlailUnit[] = [];
+  readonly weapons: WeaponLoadout;
+  onStomp: ((center: THREE.Vector3) => void) | null = null;
   private readonly dash = new DashController();
   private wobble = new WobblySpring();
   private readonly velocity = new THREE.Vector3();
@@ -37,19 +49,28 @@ export class Player {
   private readonly desiredVelocity = new THREE.Vector3();
   private readonly knockVelocity = new THREE.Vector3();
   private readonly pose: KnightPose = { walkPhase: 0, speedRatio: 0, tilt: { pitch: 0, roll: 0 } };
+  private skill: SkillKind = 'whirlwind';
   private yaw = 0;
+  private clock = 0;
+  private damageFlash = 0;
   private knockedOut = false;
+  private hopPending = false;
   private tumble = 0;
 
   constructor(
-    private readonly scene: THREE.Scene,
+    scene: THREE.Scene,
     private readonly input: Input,
     private readonly stats: PlayerStats
   ) {
     this.rig = createKnightMesh();
     scene.add(this.rig.root);
     this.rig.root.updateMatrixWorld(true);
-    this.equipFlail(this.rig.handSocket);
+    this.weapons = new WeaponLoadout(scene, this.rig, stats);
+    this.weapons.rebuild();
+  }
+
+  get chains(): FlailChain[] {
+    return this.weapons.chains;
   }
 
   get position(): THREE.Vector3 {
@@ -57,7 +78,28 @@ export class Player {
   }
 
   get isDashing(): boolean {
+    return this.dash.isActive && this.skill === 'whirlwind';
+  }
+
+  get isShielded(): boolean {
+    return this.dash.isActive && this.skill !== 'frenzy';
+  }
+
+  get isSkillActive(): boolean {
     return this.dash.isActive;
+  }
+
+  get dashCooldownRatio(): number {
+    return this.dash.cooldownRatio;
+  }
+
+  applyLoadout(hero: HeroId, weapon: WeaponId): void {
+    this.skill = SKILL_BY_HERO[hero];
+    applyHeroVariant(this.rig, hero);
+    this.stats.applyWeapon(findWeapon(weapon).effects);
+    this.dash.reset();
+    this.hopPending = false;
+    this.weapons.setWeapon(weapon);
   }
 
   setKnockedOut(knockedOut: boolean): void {
@@ -65,30 +107,24 @@ export class Player {
   }
 
   setDamageFlash(level: number): void {
-    setKnightFlash(level);
+    this.damageFlash = level;
   }
 
   reset(): void {
-    while (this.units.length > 1) {
-      this.units.pop()?.dispose();
-      this.chains.pop();
-    }
     this.velocity.set(0, 0, 0);
     this.previousVelocity.set(0, 0, 0);
     this.acceleration.set(0, 0, 0);
     this.knockVelocity.set(0, 0, 0);
     this.wobble = new WobblySpring();
     this.dash.reset();
+    this.hopPending = false;
     this.knockedOut = false;
     this.tumble = 0;
     this.yaw = 0;
     this.rig.root.position.set(0, 0, 0);
     this.rig.root.rotation.set(0, 0, 0);
     this.rig.root.updateMatrixWorld(true);
-    this.units.forEach((unit) => {
-      unit.setReach(this.stats.chainReach);
-      unit.reset();
-    });
+    this.weapons.rebuild();
     setKnightFlash(0);
   }
 
@@ -103,51 +139,56 @@ export class Player {
     clampToArena(this.rig.root.position, KNIGHT_RADIUS);
   }
 
-  get dashCooldownRatio(): number {
-    return this.dash.cooldownRatio;
-  }
-
   applyStats(): void {
-    if (this.stats.hasDoubleFlail && this.units.length < 2) this.equipFlail(this.rig.leftHandSocket);
-    this.units.forEach((unit) => unit.setReach(this.stats.chainReach));
+    this.weapons.applyStats();
   }
 
   update(deltaSeconds: number): void {
     if (deltaSeconds <= 0) return;
+    this.clock += deltaSeconds;
     this.input.getMoveDirection(this.moveDirection);
     if (this.knockedOut) this.moveDirection.set(0, 0, 0);
     this.dash.tick(deltaSeconds);
-    const dashWanted = this.input.consumeDashRequest();
-    if (dashWanted && !this.knockedOut) this.startDash();
+    const skillWanted = this.input.consumeDashRequest();
+    if (skillWanted && !this.knockedOut) this.activateSkill();
 
-    const dashing = this.dash.isActive;
-    if (dashing) this.updateDash(deltaSeconds);
-    else this.updateMovement(deltaSeconds);
-    const yawRate = dashing ? 0 : this.updateFacing(deltaSeconds);
+    const skillActive = this.dash.isActive;
+    const whirling = skillActive && this.skill === 'whirlwind';
+    const frenzied = skillActive && this.skill === 'frenzy';
+    if (whirling) this.updateDash(deltaSeconds);
+    else this.updateMovement(deltaSeconds, frenzied ? FRENZY_SPEED_MULTIPLIER : 1);
+    const yawRate = whirling ? 0 : this.updateFacing(deltaSeconds);
+
+    if (this.hopPending && !skillActive) {
+      this.hopPending = false;
+      this.onStomp?.(this.rig.root.position);
+    }
+    this.stats.knockbackBuff = frenzied ? FRENZY_KNOCKBACK_MULTIPLIER : 1;
+    this.applyGlow(frenzied);
 
     this.tumble += ((this.knockedOut ? 1 : 0) - this.tumble) * (1 - Math.exp(-TUMBLE_RATE * deltaSeconds));
     this.rig.root.rotation.y = this.yaw;
     this.rig.root.rotation.z = this.tumble * (Math.PI / 2);
-    this.rig.root.position.y = this.dash.height + this.tumble * TUMBLE_LIFT;
+    this.rig.root.position.y = (frenzied ? 0 : this.dash.height) + this.tumble * TUMBLE_LIFT;
     this.updatePose(deltaSeconds, yawRate);
 
     this.rig.root.updateMatrixWorld(true);
-    this.units.forEach((unit) => unit.update(deltaSeconds));
+    this.weapons.update(deltaSeconds);
   }
 
-  private equipFlail(socket: THREE.Object3D): void {
-    const unit = new FlailUnit(this.scene, socket);
-    unit.setReach(this.stats.chainReach);
-    this.units.push(unit);
-    this.chains.push(unit.chain);
+  private applyGlow(frenzied: boolean): void {
+    const frenzyGlow = frenzied ? FRENZY_GLOW_BASE + FRENZY_GLOW_PULSE * Math.sin(this.clock * GLOW_PULSE_RATE) : 0;
+    setKnightFlash(Math.max(this.damageFlash, frenzyGlow));
   }
 
-  private startDash(): void {
+  private activateSkill(): void {
     const wanted = new THREE.Vector3();
     if (this.moveDirection.lengthSq() > 0) wanted.copy(this.moveDirection);
     else wanted.set(Math.sin(this.yaw), 0, Math.cos(this.yaw));
-    if (!this.dash.tryStart(wanted, this.stats.dashCooldownSeconds)) return;
-    this.yaw = Math.atan2(this.dash.direction.x, this.dash.direction.z);
+    const duration = skillDurationSeconds(this.skill);
+    if (!this.dash.tryStart(wanted, this.stats.dashCooldownSeconds, duration)) return;
+    if (this.skill === 'whirlwind') this.yaw = Math.atan2(this.dash.direction.x, this.dash.direction.z);
+    if (this.skill === 'stomp') this.hopPending = true;
   }
 
   private updateDash(deltaSeconds: number): void {
@@ -158,13 +199,13 @@ export class Player {
     this.moveBody(deltaSeconds);
   }
 
-  private updateMovement(deltaSeconds: number): void {
+  private updateMovement(deltaSeconds: number, speedMultiplier: number): void {
     const hasInput = this.moveDirection.lengthSq() > 0;
     const rate = hasInput ? ACCELERATION_RATE : DECELERATION_RATE;
     const blend = 1 - Math.exp(-rate * deltaSeconds);
 
     this.previousVelocity.copy(this.velocity);
-    this.desiredVelocity.copy(this.moveDirection).multiplyScalar(MAX_SPEED);
+    this.desiredVelocity.copy(this.moveDirection).multiplyScalar(MAX_SPEED * speedMultiplier);
     this.velocity.lerp(this.desiredVelocity, blend);
     this.acceleration.subVectors(this.velocity, this.previousVelocity).divideScalar(deltaSeconds);
     this.moveBody(deltaSeconds);

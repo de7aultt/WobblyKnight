@@ -9,6 +9,7 @@ const TORCH_COLOR = 0xff8a3d;
 export interface TavernLights {
   update(elapsed: number): void;
   setShadowsEnabled(enabled: boolean): void;
+  setTheme(torchColor: number, ambientColor: number): void;
 }
 
 function createKeyLight(): THREE.DirectionalLight {
@@ -36,7 +37,8 @@ function createTorchLights(): THREE.PointLight[] {
 }
 
 export function createLights(scene: THREE.Scene): TavernLights {
-  scene.add(new THREE.AmbientLight(0x5a4a66, 0.9));
+  const ambient = new THREE.AmbientLight(0x5a4a66, 0.9);
+  scene.add(ambient);
   const keyLight = createKeyLight();
   scene.add(keyLight);
 
@@ -46,6 +48,10 @@ export function createLights(scene: THREE.Scene): TavernLights {
   return {
     setShadowsEnabled(enabled: boolean): void {
       keyLight.castShadow = enabled;
+    },
+    setTheme(torchColor: number, ambientColor: number): void {
+      torches.forEach((torch) => torch.color.setHex(torchColor));
+      ambient.color.setHex(ambientColor);
     },
     update(elapsed: number): void {
       torches.forEach((torch, index) => {

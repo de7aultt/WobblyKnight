@@ -1,5 +1,6 @@
 import './lobbyView.css';
 import { unlockAudio } from '../core/audio';
+import type { ArmoryStore } from '../core/armoryState';
 import type { GameEventBus } from '../core/events';
 import { formatDuration, type HighScores } from '../core/highScores';
 import type { MetaProgression } from '../core/metaProgression';
@@ -20,6 +21,7 @@ export interface LobbyOptions {
   meta: MetaProgression;
   highScores: HighScores;
   settings: SettingsStore;
+  armory: ArmoryStore;
   onEnterBrawl: () => void;
 }
 
@@ -44,7 +46,7 @@ function createButton(className: string, text = ''): HTMLButtonElement {
 }
 
 export function mountLobby(options: LobbyOptions): LobbyHandle {
-  const { root, events, meta, highScores, settings, onEnterBrawl } = options;
+  const { root, events, meta, highScores, settings, armory, onEnterBrawl } = options;
   const overlay = createElement('div', 'lobby interactive');
   const title = createElement('h1', 'lobby__title');
   const tagline = createElement('p', 'lobby__tagline');
@@ -103,7 +105,7 @@ export function mountLobby(options: LobbyOptions): LobbyHandle {
   shopButton.addEventListener('click', () => {
     void unlockAudio();
     hide();
-    openShopView({ root, events, meta, onBack: show });
+    openShopView({ root, events, meta, armory, onBack: show });
   });
 
   gearButton.addEventListener('click', () => {

@@ -30,6 +30,7 @@ export class Enemy {
   state: EnemyState = 'CHASING';
   health: number;
   private hitCooldown = 0;
+  private stunRemaining = 0;
   private staggerTimer = 0;
   private flightTime = 0;
   private bounceCount = 0;
@@ -50,6 +51,14 @@ export class Enemy {
 
   get isCollidable(): boolean {
     return this.state === 'CHASING' || this.state === 'STAGGERED';
+  }
+
+  get isStunned(): boolean {
+    return this.stunRemaining > 0;
+  }
+
+  stun(seconds: number): void {
+    if (this.state === 'CHASING' || this.state === 'STAGGERED') this.stunRemaining = Math.max(this.stunRemaining, seconds);
   }
 
   get isHittable(): boolean {
@@ -92,6 +101,7 @@ export class Enemy {
 
   update(deltaSeconds: number, target: THREE.Vector3): void {
     this.hitCooldown = Math.max(0, this.hitCooldown - deltaSeconds);
+    this.stunRemaining = Math.max(0, this.stunRemaining - deltaSeconds);
     if (this.state === 'CHASING') this.updateChasing(deltaSeconds, target);
     else if (this.state === 'STAGGERED') this.updateStaggered(deltaSeconds);
     else if (this.state === 'FLYING') this.updateFlying(deltaSeconds);
@@ -108,7 +118,7 @@ export class Enemy {
     const distance = Math.hypot(deltaX, deltaZ);
     const hasTarget = distance > 1e-3;
     const arrived = distance < this.type.radius + KNIGHT_CONTACT_DISTANCE;
-    const approachSpeed = hasTarget && !arrived ? this.type.speed : 0;
+    const approachSpeed = hasTarget && !arrived && !this.isStunned ? this.type.speed : 0;
 
     if (hasTarget) this.faceDirection(deltaX, deltaZ, deltaSeconds);
     const moveX = hasTarget ? (deltaX / distance) * approachSpeed : 0;
@@ -117,6 +127,7 @@ export class Enemy {
 
     this.walkPhase += this.type.walkRate * deltaSeconds * (approachSpeed > 0 ? 1 : 0.25);
     this.animateWalk(approachSpeed > 0 ? 1 : 0.3, CHASE_LEAN);
+    if (this.isStunned) this.animateStun();
   }
 
   private updateStaggered(deltaSeconds: number): void {
@@ -171,6 +182,12 @@ export class Enemy {
     const wrapped = Math.atan2(Math.sin(difference), Math.cos(difference));
     this.yaw += wrapped * (1 - Math.exp(-TURN_RATE * deltaSeconds));
     this.rig.root.rotation.set(0, this.yaw, 0);
+  }
+
+  private animateStun(): void {
+    this.walkPhase += 0.35;
+    this.rig.body.rotation.x = -0.25;
+    this.rig.body.rotation.z = Math.sin(this.walkPhase) * 0.32;
   }
 
   private animateWalk(intensity: number, lean: number): void {

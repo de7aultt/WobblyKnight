@@ -1,85 +1,69 @@
 import './shopView.css';
-import { unlockAudio } from '../core/audio';
+import type { ArmoryStore } from '../core/armoryState';
 import type { GameEventBus } from '../core/events';
 import type { MetaProgression } from '../core/metaProgression';
-import { META_UPGRADES, type MetaUpgradeDefinition } from '../core/metaUpgrades';
-import { t } from '../i18n';
+import { t, type TranslationKey } from '../i18n';
+import { createArmoryCards } from './armoryTab';
+import { BANK_ICON, createElement, type ShopContext } from './shopCards';
+import { createUpgradeCards } from './upgradeTab';
 
-const PIP_FILLED = '●';
-const PIP_EMPTY = '○';
-const BANK_ICON = '🍺';
+type ShopTab = 'upgrades' | 'hero' | 'weapon' | 'arena';
+
+const TABS: ReadonlyArray<{ id: ShopTab; labelKey: TranslationKey }> = [
+  { id: 'upgrades', labelKey: 'armory.tabUpgrades' },
+  { id: 'hero', labelKey: 'armory.tabHeroes' },
+  { id: 'weapon', labelKey: 'armory.tabWeapons' },
+  { id: 'arena', labelKey: 'armory.tabArenas' }
+];
 
 export interface ShopOptions {
   root: HTMLElement;
   events: GameEventBus;
   meta: MetaProgression;
+  armory: ArmoryStore;
   onBack: () => void;
 }
 
-function createElement(tag: keyof HTMLElementTagNameMap, className: string, text = ''): HTMLElement {
-  const element = document.createElement(tag);
-  element.className = className;
-  element.textContent = text;
-  return element;
-}
-
 export function openShopView(options: ShopOptions): void {
-  const { root, events, meta, onBack } = options;
+  const { root, events, meta, armory, onBack } = options;
   const overlay = createElement('div', 'shop interactive');
-  const bank = createElement('div', 'shop__bank');
-  const grid = createElement('div', 'shop__grid');
   const title = createElement('h2', 'shop__title');
+  const bank = createElement('div', 'shop__bank');
+  const tabBar = createElement('div', 'shop__tabs');
+  const grid = createElement('div', 'shop__grid');
   const back = document.createElement('button');
   back.type = 'button';
   back.className = 'shop__back';
+  let activeTab: ShopTab = 'upgrades';
 
-  function createPips(definition: MetaUpgradeDefinition): HTMLElement {
-    const rank = meta.rankOf(definition.id);
-    const pips = createElement('div', 'shop-card__pips');
-    pips.title = `${t('shop.rank')} ${rank}/${meta.maxRankOf(definition.id)}`;
-    definition.costs.forEach((_, index) => {
-      const filled = index < rank;
-      pips.append(createElement('span', filled ? 'shop-pip shop-pip--filled' : 'shop-pip', filled ? PIP_FILLED : PIP_EMPTY));
-    });
-    return pips;
-  }
+  const context: ShopContext = { events, meta, armory, refresh: () => render() };
 
-  function createBuyButton(definition: MetaUpgradeDefinition): HTMLButtonElement {
+  const tabButtons = TABS.map((tab) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'shop-card__buy';
-    const maxed = meta.isMaxed(definition.id);
-    button.textContent = maxed ? t('shop.maxed') : t('shop.buy');
-    button.disabled = maxed || !meta.canAfford(definition.id);
+    button.className = 'shop__tab';
     button.addEventListener('click', () => {
-      void unlockAudio();
-      if (!meta.buyUpgrade(definition.id)) return;
-      events.emit('SHOP_PURCHASE');
+      activeTab = tab.id;
       render();
     });
-    return button;
-  }
+    tabBar.append(button);
+    return { tab, button };
+  });
 
-  function createCard(definition: MetaUpgradeDefinition): HTMLElement {
-    const card = createElement('div', 'shop-card');
-    const cost = meta.nextCost(definition.id);
-    const header = createElement('div', 'shop-card__header');
-    header.append(
-      createElement('span', 'shop-card__icon', definition.icon),
-      createElement('span', 'shop-card__title', t(definition.titleKey))
-    );
-    const footer = createElement('div', 'shop-card__footer');
-    footer.append(createPips(definition));
-    if (cost !== null) footer.append(createElement('span', 'shop-card__cost', `${BANK_ICON} ${cost}`));
-    card.append(header, createElement('p', 'shop-card__desc', t(definition.descKey)), footer, createBuyButton(definition));
-    return card;
+  function createCards(): HTMLElement[] {
+    return activeTab === 'upgrades' ? createUpgradeCards(context) : createArmoryCards(context, activeTab);
   }
 
   function render(): void {
     title.textContent = t('shop.title');
     back.textContent = t('shop.back');
     bank.textContent = `${BANK_ICON} ${meta.bank}`;
-    grid.replaceChildren(...META_UPGRADES.map(createCard));
+    tabButtons.forEach(({ tab, button }) => {
+      button.textContent = t(tab.labelKey);
+      button.classList.toggle('shop__tab--active', tab.id === activeTab);
+    });
+    grid.className = activeTab === 'upgrades' ? 'shop__grid' : 'shop__grid shop__grid--armory';
+    grid.replaceChildren(...createCards());
   }
 
   const stopListening = events.on('LOCALE_CHANGED', render);
@@ -89,7 +73,7 @@ export function openShopView(options: ShopOptions): void {
     onBack();
   });
 
-  overlay.append(title, bank, grid, back);
+  overlay.append(title, bank, tabBar, grid, back);
   render();
   root.append(overlay);
 }

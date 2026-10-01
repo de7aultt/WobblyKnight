@@ -1,15 +1,17 @@
 import * as THREE from 'three';
+import type { WeaponId } from '../core/armoryItems';
 import { FlailChain } from '../physics/flailChain';
 import { createFlailMesh, type FlailVisual } from './flailMesh';
+import { chainSettingsFor } from './flailVariants';
 
 export class FlailUnit {
   readonly chain: FlailChain;
   private readonly visual: FlailVisual;
   private readonly anchorPosition = new THREE.Vector3();
 
-  constructor(scene: THREE.Scene, socket: THREE.Object3D) {
-    this.chain = new FlailChain(new THREE.Vector3());
-    this.visual = createFlailMesh(this.chain.nodes.length - 1);
+  constructor(scene: THREE.Scene, socket: THREE.Object3D, weapon: WeaponId) {
+    this.chain = new FlailChain(new THREE.Vector3(), chainSettingsFor(weapon));
+    this.visual = createFlailMesh(this.chain.nodes.length - 1, weapon);
     socket.add(this.visual.handle);
     scene.add(this.visual.chainRoot);
 

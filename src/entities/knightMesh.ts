@@ -8,6 +8,8 @@ export interface KnightRig {
   rightFoot: THREE.Mesh;
   handSocket: THREE.Object3D;
   leftHandSocket: THREE.Object3D;
+  crest: THREE.Mesh;
+  horns: THREE.Group;
 }
 
 export const KNIGHT_SCALE = 1.6;
@@ -28,7 +30,7 @@ function material(color: number, metalness = 0.1, roughness = 0.7): THREE.MeshSt
   return new THREE.MeshStandardMaterial({ color, metalness, roughness });
 }
 
-const materials = {
+export const knightMaterials = {
   iron: material(palette.iron, 0.75, 0.35),
   darkIron: material(palette.darkIron, 0.6, 0.5),
   visor: material(palette.visor, 0.2, 0.9),
@@ -38,7 +40,7 @@ const materials = {
 };
 
 export function setKnightFlash(level: number): void {
-  Object.values(materials).forEach((material) => material.emissive.setRGB(level * 0.85, level * 0.05, level * 0.05));
+  Object.values(knightMaterials).forEach((material) => material.emissive.setRGB(level * 0.85, level * 0.05, level * 0.05));
 }
 
 function part(geometry: THREE.BufferGeometry, partMaterial: THREE.Material, x: number, y: number, z: number): THREE.Mesh {
@@ -50,37 +52,53 @@ function part(geometry: THREE.BufferGeometry, partMaterial: THREE.Material, x: n
 }
 
 function createBoot(side: number): THREE.Mesh {
-  return part(new THREE.BoxGeometry(0.26, 0.2, 0.4), materials.leather, side * FOOT_SIDE_OFFSET, FOOT_BASE_HEIGHT, 0.05);
+  return part(new THREE.BoxGeometry(0.26, 0.2, 0.4), knightMaterials.leather, side * FOOT_SIDE_OFFSET, FOOT_BASE_HEIGHT, 0.05);
 }
 
 function createTorso(torsoPivot: THREE.Group): void {
   torsoPivot.add(
-    part(new THREE.CylinderGeometry(0.36, 0.42, 0.62, 10), materials.iron, 0, 0.31, 0),
-    part(new THREE.CylinderGeometry(0.44, 0.48, 0.38, 10), materials.tunic, 0, 0.18, 0),
-    part(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 10), materials.gold, 0, 0.4, 0)
+    part(new THREE.CylinderGeometry(0.36, 0.42, 0.62, 10), knightMaterials.iron, 0, 0.31, 0),
+    part(new THREE.CylinderGeometry(0.44, 0.48, 0.38, 10), knightMaterials.tunic, 0, 0.18, 0),
+    part(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 10), knightMaterials.gold, 0, 0.4, 0)
   );
 
   [-1, 1].forEach((side) => {
-    const pauldron = part(new THREE.SphereGeometry(0.21, 10, 8), materials.darkIron, side * 0.42, 0.58, 0);
+    const pauldron = part(new THREE.SphereGeometry(0.21, 10, 8), knightMaterials.darkIron, side * 0.42, 0.58, 0);
     pauldron.scale.set(1, 0.7, 1);
-    const arm = part(new THREE.CylinderGeometry(0.09, 0.08, 0.4, 8), materials.iron, side * 0.47, 0.36, 0.04);
-    const fist = part(new THREE.SphereGeometry(0.1, 8, 6), materials.darkIron, side * 0.47, 0.16, 0.1);
+    const arm = part(new THREE.CylinderGeometry(0.09, 0.08, 0.4, 8), knightMaterials.iron, side * 0.47, 0.36, 0.04);
+    const fist = part(new THREE.SphereGeometry(0.1, 8, 6), knightMaterials.darkIron, side * 0.47, 0.16, 0.1);
     torsoPivot.add(pauldron, arm, fist);
   });
 }
 
-function createHead(): THREE.Group {
+function createHorns(): THREE.Group {
+  const horns = new THREE.Group();
+  horns.visible = false;
+  const hornMaterial = new THREE.MeshStandardMaterial({ color: 0xe8e0c8, roughness: 0.6 });
+  const hornGeometry = new THREE.ConeGeometry(0.09, 0.4, 8);
+  [-1, 1].forEach((side) => {
+    const horn = part(hornGeometry, hornMaterial, side * 0.32, 0.42, 0);
+    horn.rotation.z = -side * 0.9;
+    horns.add(horn);
+  });
+  return horns;
+}
+
+function createHead(): { head: THREE.Group; crest: THREE.Mesh; horns: THREE.Group } {
   const head = new THREE.Group();
   head.position.y = 0.66;
+  const crest = part(new THREE.BoxGeometry(0.07, 0.2, 0.5), knightMaterials.gold, 0, 0.58, -0.02);
   head.add(
-    part(new THREE.CylinderGeometry(0.3, 0.32, 0.46, 12), materials.iron, 0, 0.23, 0),
-    part(new THREE.CylinderGeometry(0.31, 0.3, 0.05, 12), materials.darkIron, 0, 0.47, 0),
-    part(new THREE.BoxGeometry(0.42, 0.06, 0.06), materials.visor, 0, 0.28, 0.3),
-    part(new THREE.BoxGeometry(0.06, 0.18, 0.06), materials.visor, 0, 0.17, 0.3),
-    part(new THREE.BoxGeometry(0.07, 0.2, 0.5), materials.gold, 0, 0.58, -0.02),
-    part(new THREE.SphereGeometry(0.06, 8, 6), materials.gold, 0, 0.7, 0.18)
+    part(new THREE.CylinderGeometry(0.3, 0.32, 0.46, 12), knightMaterials.iron, 0, 0.23, 0),
+    part(new THREE.CylinderGeometry(0.31, 0.3, 0.05, 12), knightMaterials.darkIron, 0, 0.47, 0),
+    part(new THREE.BoxGeometry(0.42, 0.06, 0.06), knightMaterials.visor, 0, 0.28, 0.3),
+    part(new THREE.BoxGeometry(0.06, 0.18, 0.06), knightMaterials.visor, 0, 0.17, 0.3),
+    crest,
+    part(new THREE.SphereGeometry(0.06, 8, 6), knightMaterials.gold, 0, 0.7, 0.18)
   );
-  return head;
+  const horns = createHorns();
+  head.add(horns);
+  return { head, crest, horns };
 }
 
 export function createKnightMesh(): KnightRig {
@@ -98,7 +116,7 @@ export function createKnightMesh(): KnightRig {
   body.add(torsoPivot);
   createTorso(torsoPivot);
 
-  const head = createHead();
+  const { head, crest, horns } = createHead();
   torsoPivot.add(head);
 
   const handSocket = new THREE.Object3D();
@@ -109,5 +127,5 @@ export function createKnightMesh(): KnightRig {
   leftHandSocket.position.set(0.47, 0.16, 0.14);
   torsoPivot.add(leftHandSocket);
 
-  return { root, torsoPivot, head, leftFoot, rightFoot, handSocket, leftHandSocket };
+  return { root, torsoPivot, head, leftFoot, rightFoot, handSocket, leftHandSocket, crest, horns };
 }

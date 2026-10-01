@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { WeaponId } from '../core/armoryItems';
 import type { FlailChain } from '../physics/flailChain';
 
 export interface FlailVisual {
@@ -8,10 +9,15 @@ export interface FlailVisual {
   sync(chain: FlailChain, deltaSeconds: number): void;
 }
 
+interface HeadStyle {
+  head: THREE.Group;
+  spinRadius: number;
+  chainMaterial: THREE.Material;
+}
+
 const BEADS_PER_SEGMENT = 3;
 const HANDLE_LENGTH = 0.55;
 const HANDLE_FORWARD_TILT = 1.0;
-const BALL_CORE_RADIUS = 0.3;
 
 const SPIKE_DIRECTIONS: readonly THREE.Vector3[] = [
   [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1],
@@ -21,6 +27,9 @@ const SPIKE_DIRECTIONS: readonly THREE.Vector3[] = [
 const woodMaterial = new THREE.MeshStandardMaterial({ color: 0x5a3720, roughness: 0.8 });
 const ironMaterial = new THREE.MeshStandardMaterial({ color: 0x4c525a, metalness: 0.8, roughness: 0.4 });
 const spikeMaterial = new THREE.MeshStandardMaterial({ color: 0xb8c0c8, metalness: 0.9, roughness: 0.25 });
+const brassMaterial = new THREE.MeshStandardMaterial({ color: 0xc9a23a, metalness: 0.85, roughness: 0.3 });
+const brassSpikeMaterial = new THREE.MeshStandardMaterial({ color: 0xf4dd8c, metalness: 0.9, roughness: 0.2 });
+const bladeMaterial = new THREE.MeshStandardMaterial({ color: 0x6b727c, metalness: 0.85, roughness: 0.35 });
 
 function shadowed<MeshType extends THREE.Mesh>(mesh: MeshType): MeshType {
   mesh.castShadow = true;
@@ -41,36 +50,61 @@ function createHandle(): { handle: THREE.Group; handleTip: THREE.Object3D } {
   return { handle, handleTip };
 }
 
-function createMorningStar(): THREE.Group {
+function createSpikedBall(coreRadius: number, coreMaterial: THREE.Material, tipMaterial: THREE.Material): THREE.Group {
   const ball = new THREE.Group();
-  ball.add(shadowed(new THREE.Mesh(new THREE.IcosahedronGeometry(BALL_CORE_RADIUS, 0), ironMaterial)));
-  const spikeGeometry = new THREE.ConeGeometry(0.07, 0.24, 5);
+  ball.add(shadowed(new THREE.Mesh(new THREE.IcosahedronGeometry(coreRadius, 0), coreMaterial)));
+  const spikeGeometry = new THREE.ConeGeometry(coreRadius * 0.24, coreRadius * 0.8, 5);
   const up = new THREE.Vector3(0, 1, 0);
   SPIKE_DIRECTIONS.forEach((direction) => {
-    const spike = shadowed(new THREE.Mesh(spikeGeometry, spikeMaterial));
+    const spike = shadowed(new THREE.Mesh(spikeGeometry, tipMaterial));
     spike.quaternion.setFromUnitVectors(up, direction);
-    spike.position.copy(direction).multiplyScalar(BALL_CORE_RADIUS + 0.08);
+    spike.position.copy(direction).multiplyScalar(coreRadius + coreRadius * 0.27);
     ball.add(spike);
   });
   return ball;
 }
 
-export function createFlailMesh(segmentCount: number): FlailVisual {
+function createCleaverHead(): THREE.Group {
+  const head = new THREE.Group();
+  const blade = shadowed(new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.62, 0.52), bladeMaterial));
+  head.add(blade);
+  const toothGeometry = new THREE.ConeGeometry(0.07, 0.2, 4);
+  for (let index = 0; index < 5; index++) {
+    const tooth = shadowed(new THREE.Mesh(toothGeometry, spikeMaterial));
+    tooth.rotation.z = -Math.PI / 2;
+    tooth.position.set(0.14, -0.24 + index * 0.12, 0.1);
+    head.add(tooth);
+  }
+  const spine = shadowed(new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.62, 0.1), ironMaterial));
+  spine.position.z = -0.26;
+  head.add(spine);
+  return head;
+}
+
+function createHeadStyle(weapon: WeaponId): HeadStyle {
+  if (weapon === 'battle_cleaver') return { head: createCleaverHead(), spinRadius: 0.4, chainMaterial: ironMaterial };
+  if (weapon === 'golden_twin') {
+    return { head: createSpikedBall(0.22, brassMaterial, brassSpikeMaterial), spinRadius: 0.22, chainMaterial: brassMaterial };
+  }
+  return { head: createSpikedBall(0.3, ironMaterial, spikeMaterial), spinRadius: 0.3, chainMaterial: ironMaterial };
+}
+
+export function createFlailMesh(segmentCount: number, weapon: WeaponId): FlailVisual {
   const { handle, handleTip } = createHandle();
   const chainRoot = new THREE.Group();
+  const { head, spinRadius, chainMaterial } = createHeadStyle(weapon);
 
   const beadGeometry = new THREE.SphereGeometry(0.05, 6, 4);
   const jointGeometry = new THREE.TorusGeometry(0.07, 0.025, 6, 10);
   const beads: THREE.Mesh[] = [];
   for (let index = 0; index < segmentCount * BEADS_PER_SEGMENT; index++) {
-    beads.push(shadowed(new THREE.Mesh(beadGeometry, ironMaterial)));
+    beads.push(shadowed(new THREE.Mesh(beadGeometry, chainMaterial)));
   }
   const joints: THREE.Mesh[] = [];
   for (let index = 0; index < segmentCount - 1; index++) {
-    joints.push(shadowed(new THREE.Mesh(jointGeometry, ironMaterial)));
+    joints.push(shadowed(new THREE.Mesh(jointGeometry, chainMaterial)));
   }
-  const ball = createMorningStar();
-  chainRoot.add(...beads, ...joints, ball);
+  chainRoot.add(...beads, ...joints, head);
 
   const spinAxis = new THREE.Vector3();
   const spinRotation = new THREE.Quaternion();
@@ -93,14 +127,14 @@ export function createFlailMesh(segmentCount: number): FlailVisual {
       joint.lookAt(nodes[index + 2].position);
     });
 
-    ball.position.copy(chain.tip.position);
+    head.position.copy(chain.tip.position);
     chain.getTipVelocity(velocity);
     velocity.y = 0;
     const planarSpeed = velocity.length();
     if (planarSpeed < 1e-3) return;
     spinAxis.crossVectors(worldUp, velocity).normalize();
-    spinRotation.setFromAxisAngle(spinAxis, (planarSpeed * deltaSeconds) / BALL_CORE_RADIUS);
-    ball.quaternion.premultiply(spinRotation);
+    spinRotation.setFromAxisAngle(spinAxis, (planarSpeed * deltaSeconds) / spinRadius);
+    head.quaternion.premultiply(spinRotation);
   }
 
   return { handle, handleTip, chainRoot, sync };

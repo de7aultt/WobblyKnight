@@ -1,4 +1,5 @@
 import type { Locale } from '../i18n';
+import type { ArmoryLoadout } from './armoryState';
 import type { PerkId } from './perks';
 import type { GameSettings } from './settings';
 
@@ -25,6 +26,8 @@ export interface GameEvents {
   KNIGHT_REVIVED: void;
   SHOP_PURCHASE: void;
   SETTINGS_CHANGED: GameSettings;
+  ARMORY_CHANGED: ArmoryLoadout;
+  HOLY_STOMP: { x: number; z: number };
   LOCALE_CHANGED: { locale: Locale };
   RUN_RESET: void;
   BOSS_SPAWNED: void;

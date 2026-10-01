@@ -140,7 +140,10 @@ export class Combat {
 
   private strike(enemy: CombatTarget, origin: THREE.Vector3, speed: number, damage: number, force: number): void {
     const { knockbackScale, maxHorizontalImpulse, liftBase, liftPerSpeed } = this.settings;
-    const horizontal = Math.min((speed * knockbackScale * force) / enemy.type.mass, maxHorizontalImpulse);
+    const horizontal = Math.min(
+      (speed * knockbackScale * force * this.stats.knockbackBuff) / enemy.type.mass,
+      maxHorizontalImpulse
+    );
     const lethal = damage >= enemy.health;
     const lift = lethal ? liftBase + speed * liftPerSpeed : 0;
     this.impulse.set(this.direction.x * horizontal, lift, this.direction.z * horizontal);

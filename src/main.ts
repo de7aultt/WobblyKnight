@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { AdService } from './core/ads';
+import { ArmoryStore } from './core/armoryState';
 import { EventBus, type GameEvents } from './core/events';
 import { Health } from './core/health';
 import { bindLocaleEvents } from './i18n';
@@ -16,6 +17,7 @@ import { wireSoundEvents } from './core/soundEvents';
 import { SoundFx } from './core/soundFx';
 import { AleMugField } from './entities/aleMug';
 import { Player } from './entities/player';
+import { STOMP_RADIUS, STOMP_STUN_SECONDS } from './entities/heroSkill';
 import { Spawner } from './entities/spawner';
 import { createRunLifecycle } from './game/runLifecycle';
 import { Combat } from './physics/combat';
@@ -40,6 +42,7 @@ const BOSS_EXPLOSION_BURSTS = 6;
 const CONTACT_DAMAGE = 1;
 const CONTACT_KNOCKBACK_SPEED = 9;
 const DAMAGE_FLASH_RATE = 14;
+const STOMP_SPARK_COUNT = 8;
 
 function requireElement<Element extends HTMLElement>(id: string): Element {
   const element = document.getElementById(id);
@@ -60,7 +63,7 @@ function bootstrap(): void {
   scene.background = new THREE.Color(0x110d18);
 
   const lights = createLights(scene);
-  createArena(scene);
+  const arena = createArena(scene, lights);
 
   const stats = new PlayerStats();
   const progression = new Progression(events);
@@ -68,6 +71,7 @@ function bootstrap(): void {
   const runStats = new RunStats();
   const highScores = new HighScores();
   const meta = new MetaProgression();
+  const armory = new ArmoryStore(meta, events);
   const ads = new AdService((durationMs, slot) => showMockAdOverlay(uiRoot, durationMs, slot));
   const input = new Input(camera);
   const player = new Player(scene, input, stats);
@@ -94,6 +98,7 @@ function bootstrap(): void {
   const contacts = new ContactTracker();
   const bossPush = new THREE.Vector3();
   const explosionPoint = new THREE.Vector3();
+  const stompCenter = new THREE.Vector3();
   let wasDashing = false;
 
   function handlePerkChosen(perkId: PerkId): void {
@@ -113,7 +118,7 @@ function bootstrap(): void {
   }
 
   function applyContactDamage(deltaSeconds: number): void {
-    const blocked = player.isDashing || health.isProtected;
+    const blocked = player.isShielded || health.isProtected;
     const attacker = contacts.update(
       deltaSeconds,
       spawner.enemies,
@@ -146,6 +151,16 @@ function bootstrap(): void {
     if (health.takeDamage(BOSS_DAMAGE)) player.knockback(dirX, dirZ, BOSS_KNOCKBACK_SPEED);
   });
   events.on('BOSS_DEFEATED', ({ x, z }) => explodeBoss(x, z));
+  events.on('ARMORY_CHANGED', ({ hero, weapon, arena: arenaId }) => {
+    player.applyLoadout(hero, weapon);
+    arena.applyTheme(arenaId);
+  });
+  events.on('HOLY_STOMP', ({ x, z }) => {
+    stompCenter.set(x, 0, z);
+    spawner.stunEnemies(stompCenter, STOMP_RADIUS, STOMP_STUN_SECONDS);
+    sparks.burstRing(stompCenter, STOMP_RADIUS * 0.6, STOMP_SPARK_COUNT, 1);
+  });
+  player.onStomp = (center) => events.emit('HOLY_STOMP', { x: center.x, z: center.z });
   events.on('SETTINGS_CHANGED', ({ quality }) => applyGraphicsQuality({ renderer, lights, scene }, quality));
   events.on('RESIZE', ({ width, height }) => {
     resizeRenderer(renderer, width, height);
@@ -158,7 +173,7 @@ function bootstrap(): void {
   mountHud(uiRoot, events, progression.snapshot());
   mountBossHud(uiRoot, events);
   mountUpgradeModal({ root: uiRoot, events, loop, stats, onPerkChosen: handlePerkChosen });
-  const lobby = mountLobby({ root: uiRoot, events, meta, highScores, settings, onEnterBrawl: lifecycle.start });
+  const lobby = mountLobby({ root: uiRoot, events, meta, highScores, settings, armory, onEnterBrawl: lifecycle.start });
   mountGameOverController({
     root: uiRoot,
     events,
@@ -173,6 +188,7 @@ function bootstrap(): void {
       lifecycle.returnToTavern();
       lobby.show();
   settings.announce();
+  armory.announce();
     }
   });
   lobby.show();
@@ -182,12 +198,12 @@ function bootstrap(): void {
     runStats.tick(delta);
     health.update(delta);
     player.update(delta);
-    if (player.isDashing && !wasDashing) events.emit('DASH_STARTED');
-    wasDashing = player.isDashing;
+    if (player.isSkillActive && !wasDashing) events.emit('DASH_STARTED');
+    wasDashing = player.isSkillActive;
     events.emit('DASH_COOLDOWN', { ratio: player.dashCooldownRatio });
     player.setDamageFlash(health.isInvulnerable && !health.isKnockedOut ? Math.floor(elapsed * DAMAGE_FLASH_RATE) % 2 : 0);
 
-    spawner.update(delta, player.position, player.isDashing || health.isProtected);
+    spawner.update(delta, player.position, player.isShielded || health.isProtected);
     applyContactDamage(delta);
     if (spawner.boss?.computeKnightPush(player.position, bossPush)) player.nudge(bossPush.x, bossPush.z);
     combat.update(delta, player.chains, spawner.targets, player.position, player.isDashing);
