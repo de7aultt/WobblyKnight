@@ -16,7 +16,7 @@ import { Player } from './entities/player';
 import { Spawner } from './entities/spawner';
 import { createRunLifecycle } from './game/runLifecycle';
 import { Combat } from './physics/combat';
-import { findContactEnemy } from './physics/knightDamage';
+import { ContactTracker } from './physics/knightDamage';
 import { createArena } from './render/arena';
 import { createCamera, createCameraFollow, resizeCamera } from './render/camera';
 import { ImpactSparks } from './render/impactSparks';
@@ -72,6 +72,7 @@ function bootstrap(): void {
   const spawner = new Spawner(scene, events);
   const loop = new GameLoop();
   const lifecycle = createRunLifecycle({ events, input, player, health, stats, progression, spawner, aleMugs, runStats, sparks });
+  const contacts = new ContactTracker();
   const bossPush = new THREE.Vector3();
   const explosionPoint = new THREE.Vector3();
   let wasDashing = false;
@@ -92,10 +93,11 @@ function bootstrap(): void {
     }
   }
 
-  function applyContactDamage(): void {
-    if (player.isDashing || health.isProtected) return;
-    const attacker = findContactEnemy(spawner.enemies, player.position);
+  function applyContactDamage(deltaSeconds: number): void {
+    const blocked = player.isDashing || health.isProtected;
+    const attacker = contacts.update(deltaSeconds, spawner.enemies, player.position, blocked);
     if (!attacker || !health.takeDamage(CONTACT_DAMAGE)) return;
+    contacts.reset();
     const deltaX = player.position.x - attacker.position.x;
     const deltaZ = player.position.z - attacker.position.z;
     const length = Math.hypot(deltaX, deltaZ) || 1;
@@ -148,7 +150,7 @@ function bootstrap(): void {
     player.setDamageFlash(health.isInvulnerable && !health.isKnockedOut ? Math.floor(elapsed * DAMAGE_FLASH_RATE) % 2 : 0);
 
     spawner.update(delta, player.position, player.isDashing || health.isProtected);
-    applyContactDamage();
+    applyContactDamage(delta);
     if (spawner.boss?.computeKnightPush(player.position, bossPush)) player.nudge(bossPush.x, bossPush.z);
     combat.update(delta, player.chains, spawner.targets, player.position, player.isDashing);
     aleMugs.update(delta, player.position, stats.magnetMultiplier, () => {

@@ -85,13 +85,29 @@
 
 ---
 
-### [ ] Sprint 7: Release Packaging & Web Portal Polish
-- **Recommended Model:** `Claude 3.5 Sonnet`
+### [ ] Sprint 7: Tavern Lobby & Meta-Progression Shop
+- **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
 - **Scope:**
+  - Tavern Lobby screen before entering combat: displays player's total accumulated Ale Mugs, high scores, and audio mute toggle.
+  - Meta-Shop: Spend accumulated Ale Mugs on 4 permanent knight upgrades:
+    - *Iron Constitution:* +1 Permanent Max Heart (up to 5 hearts max).
+    - *Brawler's Might:* +20% base flail impact damage per rank (up to 3 ranks).
+    - *Magnetic Tankard:* +30% base pickup radius per rank (up to 3 ranks).
+    - *Quick Recovery:* -0.8s off Drunken Dash cooldown (down to 2.6s).
+  - "ENTER BRAWL" primary button to launch into the arena.
+  - Persistent save/load of all purchased meta-upgrades and remaining Ale Mugs in LocalStorage.
+- **Verification:** Buying upgrades deducts Ale Mugs, applies stats permanently across runs, and persists after page reload.
+
+---
+
+### [ ] Sprint 8: Multi-Language (i18n) & Portal Release Packaging
+- **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
+- **Scope:**
+  - Multi-language dictionaries: English (en), Russian (ru), Polish (pl), Spanish (es) with in-game language selector.
   - Native zero-dependency Node packager `scripts/pack.mjs` generating `wobbly-knight-web.zip` with `index.html` at root.
   - Vite `base: './'` build audit.
-  - CrazyGames SDK v3 detection wrapper (falls back gracefully if running offline or on itch.io).
-  - Performance audit: constant 60 FPS with 50+ active enemies on screen.
+  - CrazyGames SDK v3 integration wrapper (graceful fallback if offline or on itch.io).
+  - Performance audit: constant 60 FPS under heavy combat loads.
 - **Verification:** Output zip unzips and runs locally without 404s, passes all build checks.
 
 ---
@@ -148,7 +164,7 @@
 
 ---
 
-### [ ] QOL 6: Fair Combat Damage (Contact Delay 0.7s & 3 Hearts)
+### [x] QOL 6: Fair Combat Damage (Contact Delay 0.7s & 3 Hearts)
 - **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
 - **Scope:**
   - Reduce max hearts to 3 (starts with 3 hearts).

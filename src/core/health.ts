@@ -1,6 +1,6 @@
 import type { GameEventBus } from './events';
 
-export const MAX_HEALTH = 4;
+export const MAX_HEALTH = 3;
 
 const INVULNERABLE_SECONDS = 1;
 const REVIVE_INVULNERABLE_SECONDS = 2;
