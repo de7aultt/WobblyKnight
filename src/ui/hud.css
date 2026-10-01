@@ -123,6 +123,7 @@
   border: 3px solid #6b2d0f;
   border-radius: 10px;
   box-shadow: 0 3px 0 #2a1408;
+  pointer-events: auto;
 }
 
 .perk-slot--offense {

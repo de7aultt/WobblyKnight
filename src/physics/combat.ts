@@ -20,6 +20,9 @@ export interface CombatSettings {
   bodyShoveAcceleration: number;
   bodyStaggerSeconds: number;
   bootKickSpeed: number;
+  dashSlamSpeed: number;
+  dashSlamDamage: number;
+  dashReachBonus: number;
 }
 
 export const DEFAULT_COMBAT_SETTINGS: CombatSettings = {
@@ -37,7 +40,10 @@ export const DEFAULT_COMBAT_SETTINGS: CombatSettings = {
   bodyShoveRadius: 1.2,
   bodyShoveAcceleration: 45,
   bodyStaggerSeconds: 0.12,
-  bootKickSpeed: 8
+  bootKickSpeed: 8,
+  dashSlamSpeed: 14,
+  dashSlamDamage: 2,
+  dashReachBonus: 0.6
 };
 
 export class Combat {
@@ -58,11 +64,12 @@ export class Combat {
     deltaSeconds: number,
     chains: readonly FlailChain[],
     enemies: readonly Enemy[],
-    knightPosition: THREE.Vector3
+    knightPosition: THREE.Vector3,
+    isDashing: boolean
   ): void {
     for (const enemy of enemies) {
       if (!enemy.isCollidable) continue;
-      this.shoveFromBody(deltaSeconds, enemy, knightPosition);
+      this.shoveFromBody(deltaSeconds, enemy, knightPosition, isDashing);
       for (const chain of chains) {
         this.resolveTip(deltaSeconds, chain, enemy);
         if (enemy.isHittable) this.resolveLinks(chain, enemy, knightPosition);
@@ -70,15 +77,19 @@ export class Combat {
     }
   }
 
-  private shoveFromBody(deltaSeconds: number, enemy: Enemy, knightPosition: THREE.Vector3): void {
-    const reach = this.settings.bodyShoveRadius + enemy.type.radius * 0.5;
+  private shoveFromBody(deltaSeconds: number, enemy: Enemy, knightPosition: THREE.Vector3, isDashing: boolean): void {
+    const dashBonus = isDashing ? this.settings.dashReachBonus : 0;
+    const reach = this.settings.bodyShoveRadius + dashBonus + enemy.type.radius * 0.5;
     this.setOutwardDirection(enemy, knightPosition);
     const distance = Math.hypot(enemy.position.x - knightPosition.x, enemy.position.z - knightPosition.z);
     if (distance >= reach) return;
     const depth = 1 + (reach - distance) / reach;
     enemy.shove(this.direction.x, this.direction.z, this.settings.bodyShoveAcceleration * depth * deltaSeconds);
     enemy.stagger(this.settings.bodyStaggerSeconds);
-    if (this.stats.bootsLevel > 0 && enemy.isHittable) {
+    if (!enemy.isHittable) return;
+    if (isDashing) {
+      this.strike(enemy, knightPosition, this.settings.dashSlamSpeed, this.settings.dashSlamDamage, 1);
+    } else if (this.stats.bootsLevel > 0) {
       this.strike(enemy, knightPosition, this.settings.bootKickSpeed, this.stats.bootsLevel >= 2 ? 2 : 1, 1);
     }
   }

@@ -78,7 +78,7 @@ function bootstrap(): void {
     events.emit('TICK', { delta, elapsed });
     player.update(delta);
     spawner.update(delta, player.position);
-    combat.update(delta, player.chains, spawner.enemies, player.position);
+    combat.update(delta, player.chains, spawner.enemies, player.position, player.isDashing);
     aleMugs.update(delta, player.position, stats.magnetMultiplier, () => progression.collectMug());
     sparks.update(delta);
     cameraFollow.update(player.position, delta);

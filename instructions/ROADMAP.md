@@ -118,7 +118,7 @@
 
 ---
 
-### [ ] QOL 3: Drunken Dash Whirlwind & Ground-Clipping Fix
+### [x] QOL 3: Drunken Dash Whirlwind & Ground-Clipping Fix
 - **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
 - **Scope:**
   - Fix ground clipping during Spacebar dash: elevate knight with a parabolic jump arc (y > 0) so the mesh stays above the tavern floor.
@@ -126,3 +126,13 @@
   - Dash collision: crashing into enemies during dash deals heavy knockback and damage.
   - Enable pointer-events: auto on perk tray slots so hovering shows the tooltip.
 - **Verification:** Spacebar dash leaps cleanly above the floor, spins the flail in a devastating 360° sweep, and clears enemies out of the path.
+
+---
+
+### [ ] QOL 4: Dash Cooldown Visual & 5-Second Timer
+- **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
+- **Scope:**
+  - Increase Drunken Dash cooldown to 5 seconds.
+  - Add visual cooldown swipe/fill overlay on the Dash perk slot in the bottom HUD tray (filling/draining vertically from bottom to top).
+  - Quick green flash animation on the slot when the cooldown finishes and the dash is ready again.
+- **Verification:** Using dash triggers a smooth 5-second swipe overlay on its HUD slot, followed by a crisp green ready flash.

@@ -4,7 +4,7 @@ import type { PlayerStats } from '../core/playerStats';
 import { clampToArena } from '../physics/arenaBounds';
 import type { FlailChain } from '../physics/flailChain';
 import { WobblySpring } from '../physics/wobblySpring';
-import { DASH_SPEED, DashController } from './dashController';
+import { DASH_SPEED, DASH_SPIN_RATE, DashController } from './dashController';
 import { FlailUnit } from './flailUnit';
 import { animateKnight, type KnightPose } from './knightAnimator';
 import { createKnightMesh, type KnightRig } from './knightMesh';
@@ -41,7 +41,6 @@ export class Player {
     private readonly stats: PlayerStats
   ) {
     this.rig = createKnightMesh();
-    this.rig.root.rotation.order = 'YXZ';
     scene.add(this.rig.root);
     this.rig.root.updateMatrixWorld(true);
     this.equipFlail(this.rig.handSocket);
@@ -49,6 +48,10 @@ export class Player {
 
   get position(): THREE.Vector3 {
     return this.rig.root.position;
+  }
+
+  get isDashing(): boolean {
+    return this.dash.isActive;
   }
 
   applyStats(): void {
@@ -68,7 +71,7 @@ export class Player {
     const yawRate = dashing ? 0 : this.updateFacing(deltaSeconds);
 
     this.rig.root.rotation.y = this.yaw;
-    this.rig.root.rotation.x = this.dash.isActive ? this.dash.progress * Math.PI * 2 : 0;
+    this.rig.root.position.y = this.dash.height;
     this.updatePose(deltaSeconds, yawRate);
 
     this.rig.root.updateMatrixWorld(true);
@@ -94,6 +97,7 @@ export class Player {
     this.previousVelocity.copy(this.velocity);
     this.velocity.copy(this.dash.direction).multiplyScalar(DASH_SPEED);
     this.acceleration.set(0, 0, 0);
+    this.yaw += DASH_SPIN_RATE * deltaSeconds;
     this.moveBody(deltaSeconds);
   }
 
