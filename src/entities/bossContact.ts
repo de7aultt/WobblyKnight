@@ -1,17 +1,21 @@
 import type * as THREE from 'three';
-import { BOSS_TYPE, KNIGHT_CONTACT_RADIUS, SLAM_CHARGE_BIAS } from './bossConfig';
+import { KNIGHT_CONTACT_RADIUS } from './bossConfig';
+import { SLAM_CHARGE_BIAS } from './butcherConfig';
 
-export const SLAM_REACH = BOSS_TYPE.radius + KNIGHT_CONTACT_RADIUS + 0.2;
+export function slamReach(bossRadius: number): number {
+  return bossRadius + KNIGHT_CONTACT_RADIUS + 0.2;
+}
 
 export function computeKnightPush(
   bossPosition: THREE.Vector3,
+  bossRadius: number,
   knightPosition: THREE.Vector3,
   out: THREE.Vector3
 ): boolean {
   const deltaX = knightPosition.x - bossPosition.x;
   const deltaZ = knightPosition.z - bossPosition.z;
   const distance = Math.hypot(deltaX, deltaZ);
-  const minimumDistance = BOSS_TYPE.radius + KNIGHT_CONTACT_RADIUS;
+  const minimumDistance = bossRadius + KNIGHT_CONTACT_RADIUS;
   if (distance >= minimumDistance) return false;
   const directionX = distance > 1e-4 ? deltaX / distance : 1;
   const directionZ = distance > 1e-4 ? deltaZ / distance : 0;

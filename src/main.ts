@@ -35,9 +35,6 @@ import { mountHud } from './ui/hud';
 import { mountLobby } from './ui/lobbyView';
 import { mountUpgradeModal } from './ui/upgradeModal';
 
-const BOSS_KNOCKBACK_SPEED = 24;
-const BOSS_DAMAGE = 2;
-const BOSS_MUG_COUNT = 18;
 const BOSS_EXPLOSION_BURSTS = 6;
 const CONTACT_DAMAGE = 1;
 const CONTACT_KNOCKBACK_SPEED = 9;
@@ -108,9 +105,9 @@ function bootstrap(): void {
     events.emit('PERK_ACQUIRED', { perkId, level: stats.levelOf(perkId) });
   }
 
-  function explodeBoss(x: number, z: number): void {
+  function explodeBoss(x: number, z: number, mugCount: number): void {
     runStats.addEnemy();
-    aleMugs.spawnBurst(x, z, BOSS_MUG_COUNT);
+    aleMugs.spawnBurst(x, z, mugCount);
     for (let index = 0; index < BOSS_EXPLOSION_BURSTS; index++) {
       explosionPoint.set(x + (Math.random() - 0.5) * 3, 1 + Math.random() * 3, z + (Math.random() - 0.5) * 3);
       sparks.burst(explosionPoint, 1.5);
@@ -147,10 +144,14 @@ function bootstrap(): void {
     aleMugs.spawn(x, z);
     if (smashed) runStats.addEnemy();
   });
-  events.on('BOSS_SLAM', ({ dirX, dirZ }) => {
-    if (health.takeDamage(BOSS_DAMAGE)) player.knockback(dirX, dirZ, BOSS_KNOCKBACK_SPEED);
+  events.on('BOSS_SLAM', ({ dirX, dirZ, damage, knockback }) => {
+    if (health.takeDamage(damage)) player.knockback(dirX, dirZ, knockback);
   });
-  events.on('BOSS_DEFEATED', ({ x, z }) => explodeBoss(x, z));
+  events.on('BOSS_BOTTLE_SHATTER', ({ x, z }) => {
+    explosionPoint.set(x, 0.5, z);
+    sparks.burst(explosionPoint, 1);
+  });
+  events.on('BOSS_DEFEATED', ({ x, z, mugCount }) => explodeBoss(x, z, mugCount));
   events.on('ARMORY_CHANGED', ({ hero, weapon, arena: arenaId }) => {
     player.applyLoadout(hero, weapon);
     arena.applyTheme(arenaId);

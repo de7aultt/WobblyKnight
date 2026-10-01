@@ -1,0 +1,14 @@
+export const EXECUTIONER_SPEED = 2.2;
+export const EXECUTIONER_STALK_MIN_SECONDS = 2.2;
+export const EXECUTIONER_STALK_MAX_SECONDS = 3.2;
+export const WHIRL_TELEGRAPH_SECONDS = 1.2;
+export const WHIRL_SECONDS = 2;
+export const WHIRL_SPIN_RATE = 15;
+export const WHIRL_DRIFT_SPEED = 1.4;
+export const WHIRL_REACH = 4.4;
+export const WHIRL_DAMAGE = 2;
+export const WHIRL_KNOCKBACK = 30;
+export const WHIRL_HIT_INTERVAL_SECONDS = 0.5;
+export const WHIRL_ARM_ANGLE = 1.45;
+export const EXHAUST_SECONDS = 2;
+export const EXHAUST_DAMAGE_MULTIPLIER = 2;

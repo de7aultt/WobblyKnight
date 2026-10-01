@@ -1,34 +1,12 @@
 import * as THREE from 'three';
+import { WEAPON_REST_ANGLE, type BossRig } from './bossRig';
+import { part, standard, type MaterialSet } from './bossParts';
 
-export const BOSS_SCALE = 1.9;
-export const CLEAVER_REST_ANGLE = 0.5;
-export const CLEAVER_RAISED_ANGLE = -0.95;
-
-export interface BossRig {
-  root: THREE.Group;
-  body: THREE.Group;
-  head: THREE.Group;
-  cleaverPivot: THREE.Group;
-  leftFoot: THREE.Mesh;
-  rightFoot: THREE.Mesh;
-  setWarning(level: number): void;
-}
+export const BUTCHER_SCALE = 1.9;
 
 const BELLY_CENTER_Y = 1.15;
 const BELLY_RADIUS = 0.74;
 const BELLY_SCALE = new THREE.Vector3(1.1, 0.95, 1);
-
-function standard(color: number, roughness = 0.8, metalness = 0): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({ color, roughness, metalness });
-}
-
-function part(geometry: THREE.BufferGeometry, material: THREE.Material, x: number, y: number, z: number): THREE.Mesh {
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.set(x, y, z);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  return mesh;
-}
 
 function apronSurfaceZ(x: number, y: number): number {
   const lateral = x / BELLY_SCALE.x;
@@ -37,7 +15,7 @@ function apronSurfaceZ(x: number, y: number): number {
   return Math.sqrt(Math.max(radius * radius - lateral * lateral - vertical * vertical, 0.01)) * BELLY_SCALE.z;
 }
 
-function addBelly(body: THREE.Group, materials: Record<string, THREE.MeshStandardMaterial>): void {
+function addBelly(body: THREE.Group, materials: MaterialSet): void {
   const belly = part(new THREE.SphereGeometry(BELLY_RADIUS, 20, 14), materials.shirt, 0, BELLY_CENTER_Y, 0);
   belly.scale.copy(BELLY_SCALE);
 
@@ -62,7 +40,7 @@ function addBelly(body: THREE.Group, materials: Record<string, THREE.MeshStandar
   });
 }
 
-function addUpperBody(body: THREE.Group, materials: Record<string, THREE.MeshStandardMaterial>): THREE.Group {
+function addUpperBody(body: THREE.Group, materials: MaterialSet): THREE.Group {
   const chest = part(new THREE.SphereGeometry(0.55, 14, 10), materials.shirt, 0, 1.72, 0);
   chest.scale.set(1.3, 0.8, 0.9);
   body.add(chest);
@@ -75,18 +53,17 @@ function addUpperBody(body: THREE.Group, materials: Record<string, THREE.MeshSta
     body.add(arm, part(handGeometry, materials.skin, side * 0.98, 1.08, 0.2));
   });
 
-  const cleaverPivot = new THREE.Group();
-  cleaverPivot.position.set(-0.98, 1.12, 0.22);
-  cleaverPivot.rotation.x = CLEAVER_REST_ANGLE;
+  const weaponPivot = new THREE.Group();
+  weaponPivot.position.set(-0.98, 1.12, 0.22);
+  weaponPivot.rotation.x = WEAPON_REST_ANGLE;
   const handle = part(new THREE.CylinderGeometry(0.07, 0.07, 0.55, 8), materials.handle, 0, 0.18, 0);
   const blade = part(new THREE.BoxGeometry(0.08, 0.7, 0.46), materials.iron, 0, 0.75, 0.16);
   const edge = part(new THREE.BoxGeometry(0.04, 0.7, 0.06), materials.edge, 0, 0.75, 0.4);
-  cleaverPivot.add(handle, blade, edge);
-  body.add(cleaverPivot);
-  return cleaverPivot;
+  weaponPivot.add(handle, blade, edge);
+  return weaponPivot;
 }
 
-function createHead(materials: Record<string, THREE.MeshStandardMaterial>): THREE.Group {
+function createHead(materials: MaterialSet): THREE.Group {
   const head = new THREE.Group();
   head.position.y = 2.15;
   const skull = part(new THREE.SphereGeometry(0.34, 14, 10), materials.skin, 0, 0, 0);
@@ -125,7 +102,7 @@ export function createBossMesh(): BossRig {
   materials.apron.side = THREE.DoubleSide;
 
   const root = new THREE.Group();
-  root.scale.setScalar(BOSS_SCALE);
+  root.scale.setScalar(BUTCHER_SCALE);
   const body = new THREE.Group();
   root.add(body);
 
@@ -137,7 +114,10 @@ export function createBossMesh(): BossRig {
   body.add(part(legGeometry, materials.trousers, 0.34, 0.55, 0), part(legGeometry, materials.trousers, -0.34, 0.55, 0));
 
   addBelly(body, materials);
-  const cleaverPivot = addUpperBody(body, materials);
+  const weaponPivot = addUpperBody(body, materials);
+  const weaponOrbit = new THREE.Group();
+  weaponOrbit.add(weaponPivot);
+  body.add(weaponOrbit);
   const head = createHead(materials);
   body.add(head);
 
@@ -146,5 +126,16 @@ export function createBossMesh(): BossRig {
     tintable.forEach((material) => material.emissive.setRGB(level, level * 0.08, level * 0.04));
   };
 
-  return { root, body, head, cleaverPivot, leftFoot, rightFoot, setWarning };
+  return {
+    root,
+    body,
+    head,
+    weaponOrbit,
+    weaponPivot,
+    leftFoot,
+    rightFoot,
+    baseScale: BUTCHER_SCALE,
+    setWarning,
+    setDanger: () => {}
+  };
 }

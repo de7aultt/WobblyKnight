@@ -144,7 +144,7 @@
 
 ---
 
-### [ ] Sprint 11: Boss Escalation Cycle (Waves 5, 10, 15)
+### [x] Sprint 11: Boss Escalation Cycle (Waves 5, 10, 15)
 - **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
 - **Scope:**
   - Recurring boss wave every 5 levels:

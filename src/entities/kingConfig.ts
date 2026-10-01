@@ -1,0 +1,10 @@
+export const KING_SPEED = 3;
+export const KING_STALK_MIN_SECONDS = 2;
+export const KING_STALK_MAX_SECONDS = 3;
+export const KING_WINDUP_SECONDS = 0.8;
+export const KING_GLOAT_SECONDS = 2.2;
+export const KING_GLOAT_DAMAGE_MULTIPLIER = 1.5;
+export const KING_MIN_BOTTLES = 2;
+export const KING_EXTRA_BOTTLE_CHANCE = 0.5;
+export const KING_BOTTLE_SPREAD = 3.2;
+export const KING_BOTTLE_RELEASE_HEIGHT = 3.4;

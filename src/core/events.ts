@@ -1,4 +1,5 @@
 import type { Locale } from '../i18n';
+import type { BossTier } from './bossTier';
 import type { ArmoryLoadout } from './armoryState';
 import type { PerkId } from './perks';
 import type { GameSettings } from './settings';
@@ -30,13 +31,14 @@ export interface GameEvents {
   HOLY_STOMP: { x: number; z: number };
   LOCALE_CHANGED: { locale: Locale };
   RUN_RESET: void;
-  BOSS_SPAWNED: void;
+  BOSS_SPAWNED: { tier: BossTier; maxHealth: number };
   BOSS_LANDED: void;
   BOSS_TELEGRAPH: void;
   BOSS_STUNNED: void;
-  BOSS_SLAM: { dirX: number; dirZ: number };
-  BOSS_HEALTH: { ratio: number };
-  BOSS_DEFEATED: { x: number; z: number };
+  BOSS_SLAM: { dirX: number; dirZ: number; damage: number; knockback: number };
+  BOSS_HEALTH: { ratio: number; current: number; max: number };
+  BOSS_BOTTLE_SHATTER: { x: number; z: number };
+  BOSS_DEFEATED: { x: number; z: number; tier: BossTier; mugCount: number };
 }
 
 type Handler<Payload> = (payload: Payload) => void;

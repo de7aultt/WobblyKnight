@@ -1,0 +1,11 @@
+export const STALK_SPEED = 2;
+export const CHARGE_SPEED = 18;
+export const STALK_MIN_SECONDS = 3;
+export const STALK_MAX_SECONDS = 4.5;
+export const TELEGRAPH_SECONDS = 1.2;
+export const STUN_SECONDS = 2;
+export const CHARGE_MAX_SECONDS = 1.8;
+export const STUN_DAMAGE_MULTIPLIER = 2;
+export const SLAM_CHARGE_BIAS = 0.7;
+export const SLAM_DAMAGE = 2;
+export const SLAM_KNOCKBACK = 24;
