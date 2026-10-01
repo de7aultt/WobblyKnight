@@ -4,8 +4,29 @@ export const en = {
   'ui.startBrawl': 'Start Brawl',
   'hud.health': 'Health',
   'hud.level': 'Level',
+  'hud.levelShort': 'LVL',
+  'hud.xp': 'XP',
+  'hud.mugs': 'Mugs collected',
   'hud.ale': 'Ale',
-  'hud.wave': 'Wave'
+  'hud.wave': 'Wave',
+  'levelUp.banner': 'Level Up!',
+  'levelUp.prompt': 'Choose your perk',
+  'levelUp.hint': 'Click a card or press 1, 2 or 3',
+  'perk.tag.offense': 'Offense',
+  'perk.tag.mobility': 'Mobility',
+  'perk.tag.utility': 'Utility',
+  'perk.longerChain.title': 'Longer Chain',
+  'perk.longerChain.desc': 'Flail reach +40%.',
+  'perk.heavySpikes.title': 'Heavy Spikes',
+  'perk.heavySpikes.desc': '+50% impact damage and heavier knockback.',
+  'perk.doubleMorningstar.title': 'Double Morningstar',
+  'perk.doubleMorningstar.desc': 'A second flail swings from your other hand.',
+  'perk.drunkenDash.title': 'Drunken Dash',
+  'perk.drunkenDash.desc': 'Press Space for an explosive forward tumble. 3 second cooldown.',
+  'perk.spikeBoots.title': 'Spike Boots',
+  'perk.spikeBoots.desc': 'Enemies crowding your body get kicked for damage.',
+  'perk.aleMagnet.title': 'Ale Magnet',
+  'perk.aleMagnet.desc': 'Pickup range and pull speed +100%.'
 } as const;
 
 export type TranslationKey = keyof typeof en;

@@ -7,6 +7,7 @@ export interface KnightRig {
   leftFoot: THREE.Mesh;
   rightFoot: THREE.Mesh;
   handSocket: THREE.Object3D;
+  leftHandSocket: THREE.Object3D;
 }
 
 export const KNIGHT_SCALE = 1.6;
@@ -100,5 +101,9 @@ export function createKnightMesh(): KnightRig {
   handSocket.position.set(-0.47, 0.16, 0.14);
   torsoPivot.add(handSocket);
 
-  return { root, torsoPivot, head, leftFoot, rightFoot, handSocket };
+  const leftHandSocket = new THREE.Object3D();
+  leftHandSocket.position.set(0.47, 0.16, 0.14);
+  torsoPivot.add(leftHandSocket);
+
+  return { root, torsoPivot, head, leftFoot, rightFoot, handSocket, leftHandSocket };
 }

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { PlayerStats } from '../core/playerStats';
 import type { Enemy } from '../entities/enemy';
 import type { ImpactSparks } from '../render/impactSparks';
 import type { FlailChain } from './flailChain';
@@ -18,6 +19,7 @@ export interface CombatSettings {
   bodyShoveRadius: number;
   bodyShoveAcceleration: number;
   bodyStaggerSeconds: number;
+  bootKickSpeed: number;
 }
 
 export const DEFAULT_COMBAT_SETTINGS: CombatSettings = {
@@ -34,7 +36,8 @@ export const DEFAULT_COMBAT_SETTINGS: CombatSettings = {
   linkDamage: 1,
   bodyShoveRadius: 1.2,
   bodyShoveAcceleration: 45,
-  bodyStaggerSeconds: 0.12
+  bodyStaggerSeconds: 0.12,
+  bootKickSpeed: 8
 };
 
 export class Combat {
@@ -47,17 +50,23 @@ export class Combat {
 
   constructor(
     private readonly sparks: ImpactSparks,
+    private readonly stats: PlayerStats,
     private readonly settings: CombatSettings = DEFAULT_COMBAT_SETTINGS
   ) {}
 
-  update(deltaSeconds: number, chain: FlailChain, enemies: readonly Enemy[], knightPosition: THREE.Vector3): void {
-    chain.getTipVelocity(this.tipVelocity);
-
+  update(
+    deltaSeconds: number,
+    chains: readonly FlailChain[],
+    enemies: readonly Enemy[],
+    knightPosition: THREE.Vector3
+  ): void {
     for (const enemy of enemies) {
       if (!enemy.isCollidable) continue;
       this.shoveFromBody(deltaSeconds, enemy, knightPosition);
-      this.resolveTip(deltaSeconds, chain, enemy);
-      if (enemy.isHittable) this.resolveLinks(chain, enemy, knightPosition);
+      for (const chain of chains) {
+        this.resolveTip(deltaSeconds, chain, enemy);
+        if (enemy.isHittable) this.resolveLinks(chain, enemy, knightPosition);
+      }
     }
   }
 
@@ -69,11 +78,15 @@ export class Combat {
     const depth = 1 + (reach - distance) / reach;
     enemy.shove(this.direction.x, this.direction.z, this.settings.bodyShoveAcceleration * depth * deltaSeconds);
     enemy.stagger(this.settings.bodyStaggerSeconds);
+    if (this.stats.bootsLevel > 0 && enemy.isHittable) {
+      this.strike(enemy, knightPosition, this.settings.bootKickSpeed, this.stats.bootsLevel >= 2 ? 2 : 1, 1);
+    }
   }
 
   private resolveTip(deltaSeconds: number, chain: FlailChain, enemy: Enemy): void {
     const tipPosition = chain.tipPosition;
     if (!enemy.isCollidable || !enemy.overlapsSphere(tipPosition, chain.tipRadius)) return;
+    chain.getTipVelocity(this.tipVelocity);
     const speed = chain.tipSpeed;
     this.resolveTipDirection(tipPosition, enemy);
     if (speed < this.settings.minImpactSpeed) {
@@ -81,8 +94,9 @@ export class Combat {
       return;
     }
     if (!enemy.isHittable) return;
-    const damage = speed >= this.settings.heavyImpactSpeed ? 2 : 1;
-    this.strike(enemy, tipPosition, speed, damage);
+    const baseDamage = speed >= this.settings.heavyImpactSpeed ? 2 : 1;
+    const multiplier = this.stats.impactMultiplier;
+    this.strike(enemy, tipPosition, speed, baseDamage * multiplier, multiplier);
   }
 
   private resolveLinks(chain: FlailChain, enemy: Enemy, knightPosition: THREE.Vector3): void {
@@ -91,7 +105,8 @@ export class Combat {
       const speed = chain.getLinkVelocity(link, this.linkVelocity).length();
       if (speed < this.settings.minLinkImpactSpeed) continue;
       this.setOutwardDirection(enemy, knightPosition);
-      this.strike(enemy, link.position, speed, this.settings.linkDamage);
+      const multiplier = this.stats.impactMultiplier;
+      this.strike(enemy, link.position, speed, this.settings.linkDamage * multiplier, multiplier);
       return;
     }
   }
@@ -111,9 +126,9 @@ export class Combat {
     this.setOutwardDirection(enemy, tipPosition);
   }
 
-  private strike(enemy: Enemy, origin: THREE.Vector3, speed: number, damage: number): void {
+  private strike(enemy: Enemy, origin: THREE.Vector3, speed: number, damage: number, force: number): void {
     const { knockbackScale, maxHorizontalImpulse, liftBase, liftPerSpeed } = this.settings;
-    const horizontal = Math.min((speed * knockbackScale) / enemy.type.mass, maxHorizontalImpulse);
+    const horizontal = Math.min((speed * knockbackScale * force) / enemy.type.mass, maxHorizontalImpulse);
     const lethal = damage >= enemy.health;
     const lift = lethal ? liftBase + speed * liftPerSpeed : 0;
     this.impulse.set(this.direction.x * horizontal, lift, this.direction.z * horizontal);

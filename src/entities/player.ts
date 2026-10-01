@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import type { Input } from '../core/input';
+import type { PlayerStats } from '../core/playerStats';
 import { clampToArena } from '../physics/arenaBounds';
-import { FlailChain } from '../physics/flailChain';
+import type { FlailChain } from '../physics/flailChain';
 import { WobblySpring } from '../physics/wobblySpring';
-import { createFlailMesh, type FlailVisual } from './flailMesh';
+import { DASH_SPEED, DashController } from './dashController';
+import { FlailUnit } from './flailUnit';
 import { animateKnight, type KnightPose } from './knightAnimator';
 import { createKnightMesh, type KnightRig } from './knightMesh';
 
@@ -21,44 +23,78 @@ function shortestAngle(from: number, to: number): number {
 
 export class Player {
   readonly rig: KnightRig;
-  readonly chain: FlailChain;
-  private readonly flail: FlailVisual;
+  readonly chains: FlailChain[] = [];
+  private readonly units: FlailUnit[] = [];
+  private readonly dash = new DashController();
   private readonly wobble = new WobblySpring();
   private readonly velocity = new THREE.Vector3();
   private readonly previousVelocity = new THREE.Vector3();
   private readonly acceleration = new THREE.Vector3();
   private readonly moveDirection = new THREE.Vector3();
   private readonly desiredVelocity = new THREE.Vector3();
-  private readonly anchorPosition = new THREE.Vector3();
   private readonly pose: KnightPose = { walkPhase: 0, speedRatio: 0, tilt: { pitch: 0, roll: 0 } };
   private yaw = 0;
 
-  constructor(scene: THREE.Scene, private readonly input: Input) {
+  constructor(
+    private readonly scene: THREE.Scene,
+    private readonly input: Input,
+    private readonly stats: PlayerStats
+  ) {
     this.rig = createKnightMesh();
-    this.chain = new FlailChain(new THREE.Vector3());
-    this.flail = createFlailMesh(this.chain.nodes.length - 1);
-    this.rig.handSocket.add(this.flail.handle);
-    scene.add(this.rig.root, this.flail.chainRoot);
-
+    this.rig.root.rotation.order = 'YXZ';
+    scene.add(this.rig.root);
     this.rig.root.updateMatrixWorld(true);
-    this.chain.reset(this.flail.handleTip.getWorldPosition(this.anchorPosition));
-    this.flail.sync(this.chain, 0);
+    this.equipFlail(this.rig.handSocket);
   }
 
   get position(): THREE.Vector3 {
     return this.rig.root.position;
   }
 
+  applyStats(): void {
+    if (this.stats.hasDoubleFlail && this.units.length < 2) this.equipFlail(this.rig.leftHandSocket);
+    this.units.forEach((unit) => unit.setReach(this.stats.chainReach));
+  }
+
   update(deltaSeconds: number): void {
     if (deltaSeconds <= 0) return;
     this.input.getMoveDirection(this.moveDirection);
-    this.updateMovement(deltaSeconds);
-    const yawRate = this.updateFacing(deltaSeconds);
+    this.dash.tick(deltaSeconds);
+    if (this.input.consumeDashRequest() && this.stats.hasDash) this.startDash();
+
+    const dashing = this.dash.isActive;
+    if (dashing) this.updateDash(deltaSeconds);
+    else this.updateMovement(deltaSeconds);
+    const yawRate = dashing ? 0 : this.updateFacing(deltaSeconds);
+
+    this.rig.root.rotation.y = this.yaw;
+    this.rig.root.rotation.x = this.dash.isActive ? this.dash.progress * Math.PI * 2 : 0;
     this.updatePose(deltaSeconds, yawRate);
 
     this.rig.root.updateMatrixWorld(true);
-    this.chain.step(deltaSeconds, this.flail.handleTip.getWorldPosition(this.anchorPosition));
-    this.flail.sync(this.chain, deltaSeconds);
+    this.units.forEach((unit) => unit.update(deltaSeconds));
+  }
+
+  private equipFlail(socket: THREE.Object3D): void {
+    const unit = new FlailUnit(this.scene, socket);
+    unit.setReach(this.stats.chainReach);
+    this.units.push(unit);
+    this.chains.push(unit.chain);
+  }
+
+  private startDash(): void {
+    const wanted = new THREE.Vector3();
+    if (this.moveDirection.lengthSq() > 0) wanted.copy(this.moveDirection);
+    else wanted.set(Math.sin(this.yaw), 0, Math.cos(this.yaw));
+    if (!this.dash.tryStart(wanted)) return;
+    this.yaw = Math.atan2(this.dash.direction.x, this.dash.direction.z);
+  }
+
+  private updateDash(deltaSeconds: number): void {
+    this.previousVelocity.copy(this.velocity);
+    this.velocity.copy(this.dash.direction).multiplyScalar(DASH_SPEED);
+    this.acceleration.set(0, 0, 0);
+    this.moveBody(deltaSeconds);
   }
 
   private updateMovement(deltaSeconds: number): void {
@@ -70,7 +106,10 @@ export class Player {
     this.desiredVelocity.copy(this.moveDirection).multiplyScalar(MAX_SPEED);
     this.velocity.lerp(this.desiredVelocity, blend);
     this.acceleration.subVectors(this.velocity, this.previousVelocity).divideScalar(deltaSeconds);
+    this.moveBody(deltaSeconds);
+  }
 
+  private moveBody(deltaSeconds: number): void {
     const position = this.rig.root.position;
     position.addScaledVector(this.velocity, deltaSeconds);
     const contact = clampToArena(position, KNIGHT_RADIUS);
@@ -85,7 +124,6 @@ export class Player {
     const maxTurn = TURN_SPEED * deltaSeconds;
     const turn = Math.min(Math.max(difference, -maxTurn), maxTurn);
     this.yaw += turn;
-    this.rig.root.rotation.y = this.yaw;
     return turn / deltaSeconds;
   }
 

@@ -1,11 +1,17 @@
 import * as THREE from 'three';
 
+export const BASE_MAGNET_RADIUS = 3.2;
+export const COLLECT_RADIUS = 1.2;
+
 const MAX_ACTIVE_MUGS = 120;
 const BASE_HEIGHT = 0.4;
 const BOB_AMPLITUDE = 0.1;
 const BOB_RATE = 3;
 const SPIN_RATE = 1.6;
 const POP_SECONDS = 0.25;
+const BASE_PULL_SPEED = 6;
+const PULL_SPEED_RANGE = 12;
+const PULL_SMOOTHING = 8;
 
 const gold = new THREE.MeshStandardMaterial({ color: 0xe3a62b, metalness: 0.8, roughness: 0.3 });
 const foam = new THREE.MeshStandardMaterial({ color: 0xfff6e0, roughness: 0.9 });
@@ -38,6 +44,7 @@ export class AleMug {
   readonly mesh = createMugMesh();
   private age = Math.random() * Math.PI * 2;
   private lifetime = 0;
+  private pullSpeed = 0;
 
   constructor(x: number, z: number) {
     this.mesh.position.set(x, BASE_HEIGHT, z);
@@ -48,12 +55,24 @@ export class AleMug {
     return this.mesh.position;
   }
 
+  pullToward(deltaX: number, deltaZ: number, distance: number, radius: number, pullMultiplier: number, deltaSeconds: number): void {
+    const closeness = 1 - Math.min(distance / radius, 1);
+    const desiredSpeed = (BASE_PULL_SPEED + closeness * PULL_SPEED_RANGE) * pullMultiplier;
+    this.pullSpeed += (desiredSpeed - this.pullSpeed) * (1 - Math.exp(-PULL_SMOOTHING * deltaSeconds));
+    const step = Math.min(this.pullSpeed * deltaSeconds, distance);
+    this.mesh.position.x += (deltaX / distance) * step;
+    this.mesh.position.z += (deltaZ / distance) * step;
+  }
+
+  releasePull(): void {
+    this.pullSpeed = 0;
+  }
+
   update(deltaSeconds: number): void {
     this.age += deltaSeconds;
     this.lifetime += deltaSeconds;
     const pop = Math.min(this.lifetime / POP_SECONDS, 1);
-    this.mesh.scale.setScalar(1 + Math.sin(pop * Math.PI) * 0.35 * pop);
-    this.mesh.scale.multiplyScalar(pop);
+    this.mesh.scale.setScalar((1 + Math.sin(pop * Math.PI) * 0.35 * pop) * pop);
     this.mesh.position.y = BASE_HEIGHT + Math.sin(this.age * BOB_RATE) * BOB_AMPLITUDE;
     this.mesh.rotation.y += SPIN_RATE * deltaSeconds;
   }
@@ -77,17 +96,22 @@ export class AleMugField {
     return mug;
   }
 
-  collect(mug: AleMug): void {
-    mug.dispose();
-  }
-
-  update(deltaSeconds: number): void {
+  update(deltaSeconds: number, knightPosition: THREE.Vector3, magnetMultiplier: number, onCollect: () => void): void {
+    const radius = BASE_MAGNET_RADIUS * magnetMultiplier;
     for (let index = this.mugs.length - 1; index >= 0; index--) {
       const mug = this.mugs[index];
-      if (!mug.active) {
+      const deltaX = knightPosition.x - mug.position.x;
+      const deltaZ = knightPosition.z - mug.position.z;
+      const distance = Math.hypot(deltaX, deltaZ);
+
+      if (distance <= COLLECT_RADIUS) {
+        mug.dispose();
         this.mugs.splice(index, 1);
+        onCollect();
         continue;
       }
+      if (distance <= radius) mug.pullToward(deltaX, deltaZ, distance, radius, magnetMultiplier, deltaSeconds);
+      else mug.releasePull();
       mug.update(deltaSeconds);
     }
   }

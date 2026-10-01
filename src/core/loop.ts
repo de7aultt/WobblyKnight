@@ -3,14 +3,28 @@ const MAX_DELTA_SECONDS = 0.1;
 export type TickCallback = (delta: number, elapsed: number) => void;
 
 export class GameLoop {
-  private callbacks: TickCallback[] = [];
+  private tickCallbacks: TickCallback[] = [];
+  private frameCallbacks: TickCallback[] = [];
   private frameId = 0;
   private lastTimestamp = 0;
   private elapsed = 0;
   private running = false;
+  private paused = false;
 
   onTick(callback: TickCallback): void {
-    this.callbacks.push(callback);
+    this.tickCallbacks.push(callback);
+  }
+
+  onFrame(callback: TickCallback): void {
+    this.frameCallbacks.push(callback);
+  }
+
+  get isPaused(): boolean {
+    return this.paused;
+  }
+
+  setPaused(paused: boolean): void {
+    this.paused = paused;
   }
 
   start(): void {
@@ -30,8 +44,11 @@ export class GameLoop {
     const rawDelta = (timestamp - this.lastTimestamp) / 1000;
     const delta = Math.min(Math.max(rawDelta, 0), MAX_DELTA_SECONDS);
     this.lastTimestamp = timestamp;
-    this.elapsed += delta;
-    this.callbacks.forEach((callback) => callback(delta, this.elapsed));
+    if (!this.paused) {
+      this.elapsed += delta;
+      this.tickCallbacks.forEach((callback) => callback(delta, this.elapsed));
+    }
+    this.frameCallbacks.forEach((callback) => callback(delta, this.elapsed));
     this.frameId = requestAnimationFrame(this.frame);
   };
 }

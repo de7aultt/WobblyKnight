@@ -1,8 +1,17 @@
+export interface ProgressSnapshot {
+  level: number;
+  xp: number;
+  xpTarget: number;
+  mugs: number;
+}
+
 export interface GameEvents {
   GAME_START: void;
   RESIZE: { width: number; height: number };
   TICK: { delta: number; elapsed: number };
   ENEMY_DEFEATED: { x: number; z: number };
+  PROGRESS_CHANGED: ProgressSnapshot;
+  LEVEL_UP: { level: number };
 }
 
 type Handler<Payload> = (payload: Payload) => void;

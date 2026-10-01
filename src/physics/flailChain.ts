@@ -37,6 +37,7 @@ export class FlailChain {
   readonly nodes: Particle[] = [];
   readonly links: Particle[];
   private readonly restLengths: number[] = [];
+  private readonly baseRestLengths: number[];
   private readonly anchorFrom = new THREE.Vector3();
   private readonly anchorTo = new THREE.Vector3();
   private readonly tipVelocity = new THREE.Vector3();
@@ -53,7 +54,14 @@ export class FlailChain {
     this.nodes.push(createParticle(anchorPosition, ballMass, ballRadius));
     this.restLengths.push(ballLinkLength);
     this.links = this.nodes.slice(1, -1);
+    this.baseRestLengths = [...this.restLengths];
     this.reset(anchorPosition);
+  }
+
+  setReachMultiplier(multiplier: number): void {
+    this.baseRestLengths.forEach((length, index) => {
+      this.restLengths[index] = length * multiplier;
+    });
   }
 
   getLinkVelocity(link: Particle, out: THREE.Vector3): THREE.Vector3 {

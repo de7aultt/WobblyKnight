@@ -41,7 +41,7 @@
 
 ---
 
-### [ ] Sprint 4: Ale Mug Drops & 3-Card Roguelite Level Up
+### [x] Sprint 4: Ale Mug Drops & 3-Card Roguelite Level Up
 - **Recommended Model:** `Claude 3.5 Sonnet`
 - **Scope:**
   - Knight magnetic pickup radius for Ale Mugs.
@@ -105,3 +105,13 @@
   - Switch to pure WASD / Arrow keys control: knight smoothly rotates toward movement vector with angular inertia (no mouse required). Spinning W-D-S-A whips flail into orbit.
   - Fix close-combat dead zone: intermediate chain links also check hitboxes/damage, and knight body pushes enemies away with a radial shove.
 - **Verification:** WASD controls feel natural and responsive without mouse; enemies cannot hug the knight or get stuck inside the dead zone.
+
+---
+
+### [ ] QOL 2: Acquired Perks Tray in HUD
+- **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
+- **Scope:**
+  - Add a stylized bottom tray / dock in the HUD displaying all currently acquired perks as compact badge slots.
+  - Each badge shows the perk icon and a level counter (e.g., I, II, III).
+  - Automatically updates whenever a new perk is selected from the Level Up modal.
+- **Verification:** Picking perks in the modal immediately populates/increments badges in the bottom tray cleanly.

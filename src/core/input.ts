@@ -15,6 +15,7 @@ export class Input {
   private readonly pressedKeys = new Set<string>();
   private readonly cameraForward = new THREE.Vector3();
   private enabled = false;
+  private dashRequested = false;
 
   constructor(private readonly camera: THREE.Camera) {
     window.addEventListener('keydown', this.handleKeyDown);
@@ -24,7 +25,16 @@ export class Input {
 
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
-    if (!enabled) this.pressedKeys.clear();
+    if (!enabled) {
+      this.pressedKeys.clear();
+      this.dashRequested = false;
+    }
+  }
+
+  consumeDashRequest(): boolean {
+    const requested = this.dashRequested;
+    this.dashRequested = false;
+    return requested;
   }
 
   getMoveDirection(out: THREE.Vector3): THREE.Vector3 {
@@ -59,6 +69,12 @@ export class Input {
   }
 
   private handleKeyDown = (event: KeyboardEvent): void => {
+    if (event.code === 'Space') {
+      if (!this.enabled) return;
+      event.preventDefault();
+      if (!event.repeat) this.dashRequested = true;
+      return;
+    }
     if (!(event.code in MOVE_KEY_BINDINGS)) return;
     if (this.enabled) event.preventDefault();
     this.pressedKeys.add(event.code);
