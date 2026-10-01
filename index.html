@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Wobbly Knight</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        user-select: none;
+      }
+      html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #110d18;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      #game-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      #canvas-layer {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      #ui-root {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .interactive {
+        pointer-events: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container">
+      <canvas id="canvas-layer"></canvas>
+      <div id="ui-root"></div>
+    </div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
