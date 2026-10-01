@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { AdService } from '../core/ads';
 import type { GameEventBus } from '../core/events';
 import type { Health } from '../core/health';
 import type { Input } from '../core/input';
@@ -19,6 +20,7 @@ const SHOCKWAVE_SPARK_RING = 2.2;
 
 export interface RunLifecycleDeps {
   events: GameEventBus;
+  ads: AdService;
   input: Input;
   player: Player;
   health: Health;
@@ -37,11 +39,13 @@ export interface RunLifecycle {
   revive(): void;
   restart(): void;
   returnToTavern(): void;
+  readonly isRunning: boolean;
 }
 
 export function createRunLifecycle(deps: RunLifecycleDeps): RunLifecycle {
-  const { events, input, player, health, stats, progression, meta, spawner, aleMugs, runStats, sparks } = deps;
+  const { events, ads, input, player, health, stats, progression, meta, spawner, aleMugs, runStats, sparks } = deps;
   const sparkPoint = new THREE.Vector3();
+  let running = false;
 
   function start(): void {
     const effective = meta.getEffectiveStats();
@@ -51,12 +55,16 @@ export function createRunLifecycle(deps: RunLifecycleDeps): RunLifecycle {
     input.setEnabled(true);
     runStats.start();
     spawner.activate(player.position);
+    running = true;
+    ads.gameplayStart();
   }
 
   function knockOut(): void {
     input.setEnabled(false);
     player.setKnockedOut(true);
     runStats.stop();
+    running = false;
+    ads.gameplayStop();
   }
 
   function revive(): void {
@@ -64,6 +72,8 @@ export function createRunLifecycle(deps: RunLifecycleDeps): RunLifecycle {
     player.setKnockedOut(false);
     input.setEnabled(true);
     runStats.start();
+    running = true;
+    ads.gameplayStart();
     spawner.shockwave(player.position, SHOCKWAVE_RADIUS, SHOCKWAVE_FORCE, SHOCKWAVE_STAGGER_SECONDS);
     for (let index = 0; index < SHOCKWAVE_SPARK_COUNT; index++) {
       const angle = (index / SHOCKWAVE_SPARK_COUNT) * Math.PI * 2;
@@ -78,6 +88,8 @@ export function createRunLifecycle(deps: RunLifecycleDeps): RunLifecycle {
   }
 
   function resetRun(): void {
+    running = false;
+    ads.gameplayStop();
     spawner.reset();
     aleMugs.clear();
     stats.reset();
@@ -98,5 +110,14 @@ export function createRunLifecycle(deps: RunLifecycleDeps): RunLifecycle {
     input.setEnabled(false);
   }
 
-  return { start, knockOut, revive, restart, returnToTavern };
+  return {
+    start,
+    knockOut,
+    revive,
+    restart,
+    returnToTavern,
+    get isRunning() {
+      return running;
+    }
+  };
 }

@@ -2,6 +2,7 @@ import './hearts.css';
 import { BASE_MAX_HEARTS } from '../core/baseStats';
 import type { GameEventBus } from '../core/events';
 import { t } from '../i18n';
+import { bindLocalized } from './localized';
 
 const HEART_GLYPH = '♥';
 
@@ -22,7 +23,9 @@ function createHeart(): HTMLElement {
 export function mountHearts(root: HTMLElement, events: GameEventBus): void {
   const container = document.createElement('div');
   container.className = 'hearts';
-  container.title = t('hud.health');
+  bindLocalized(events, () => {
+    container.title = t('hud.health');
+  });
   root.append(container);
 
   let hearts: HTMLElement[] = [];

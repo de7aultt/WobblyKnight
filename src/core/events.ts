@@ -1,3 +1,4 @@
+import type { Locale } from '../i18n';
 import type { PerkId } from './perks';
 
 export interface ProgressSnapshot {
@@ -23,6 +24,7 @@ export interface GameEvents {
   KNIGHT_REVIVED: void;
   SHOP_PURCHASE: void;
   MUTE_CHANGED: { muted: boolean };
+  LOCALE_CHANGED: { locale: Locale };
   RUN_RESET: void;
   BOSS_SPAWNED: void;
   BOSS_LANDED: void;

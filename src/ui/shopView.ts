@@ -28,10 +28,10 @@ export function openShopView(options: ShopOptions): void {
   const overlay = createElement('div', 'shop interactive');
   const bank = createElement('div', 'shop__bank');
   const grid = createElement('div', 'shop__grid');
+  const title = createElement('h2', 'shop__title');
   const back = document.createElement('button');
   back.type = 'button';
   back.className = 'shop__back';
-  back.textContent = t('shop.back');
 
   function createPips(definition: MetaUpgradeDefinition): HTMLElement {
     const rank = meta.rankOf(definition.id);
@@ -76,16 +76,20 @@ export function openShopView(options: ShopOptions): void {
   }
 
   function render(): void {
+    title.textContent = t('shop.title');
+    back.textContent = t('shop.back');
     bank.textContent = `${BANK_ICON} ${meta.bank}`;
     grid.replaceChildren(...META_UPGRADES.map(createCard));
   }
 
+  const stopListening = events.on('LOCALE_CHANGED', render);
   back.addEventListener('click', () => {
+    stopListening();
     overlay.remove();
     onBack();
   });
 
-  overlay.append(createElement('h2', 'shop__title', t('shop.title')), bank, grid, back);
+  overlay.append(title, bank, grid, back);
   render();
   root.append(overlay);
 }

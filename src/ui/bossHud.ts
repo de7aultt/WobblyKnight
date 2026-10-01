@@ -1,6 +1,7 @@
 import './bossHud.css';
 import type { GameEventBus } from '../core/events';
 import { t } from '../i18n';
+import { bindLocalized } from './localized';
 
 function createElement(tag: keyof HTMLElementTagNameMap, className: string, text = ''): HTMLElement {
   const element = document.createElement(tag);
@@ -11,7 +12,10 @@ function createElement(tag: keyof HTMLElementTagNameMap, className: string, text
 
 export function mountBossHud(root: HTMLElement, events: GameEventBus): void {
   const panel = createElement('div', 'boss-hud boss-hud--hidden');
-  const title = createElement('div', 'boss-hud__title', t('boss.giantButcher'));
+  const title = createElement('div', 'boss-hud__title');
+  bindLocalized(events, () => {
+    title.textContent = t('boss.giantButcher');
+  });
   const track = createElement('div', 'boss-hud__track');
   const damage = createElement('div', 'boss-hud__damage');
   const fill = createElement('div', 'boss-hud__fill');

@@ -8,6 +8,7 @@ export const en = {
   'lobby.bestSmashed': 'Most Smashed',
   'lobby.mute': 'Mute sound',
   'lobby.unmute': 'Unmute sound',
+  'lobby.language': 'Language',
   'shop.title': 'Tavern Shop',
   'shop.buy': 'Buy',
   'shop.maxed': 'Max Rank',

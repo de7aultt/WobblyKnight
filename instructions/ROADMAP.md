@@ -100,7 +100,7 @@
 
 ---
 
-### [ ] Sprint 8: Multi-Language (i18n) & Portal Release Packaging
+### [x] Sprint 8: Multi-Language (i18n) & Portal Release Packaging
 - **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
 - **Scope:**
   - Multi-language dictionaries: English (en), Russian (ru), Polish (pl), Spanish (es) with in-game language selector.

@@ -13,6 +13,9 @@ interface SdkAdCallbacks {
 }
 
 interface CrazyGamesSdk {
+  init(): Promise<void>;
+  environment?: string;
+  game: { gameplayStart(): void; gameplayStop(): void };
   ad: { requestAd(type: SdkAdType, callbacks: SdkAdCallbacks): void };
 }
 
@@ -25,9 +28,36 @@ declare global {
 const MOCK_AD_DURATION_MS = 2500;
 const RUN_COUNTER_KEY = 'wobbly-knight.completed-runs';
 const MIDROLL_EVERY_N_RUNS = 2;
+const DISABLED_ENVIRONMENT = 'disabled';
 
 export class AdService {
+  private ready = false;
+  private gameplayWanted = false;
+  private gameplayActive = false;
+
   constructor(private readonly renderMockAd: MockAdRenderer) {}
+
+  async initialize(): Promise<void> {
+    const sdk = window.CrazyGames?.SDK;
+    if (!sdk) return;
+    try {
+      await sdk.init();
+      this.ready = sdk.environment !== DISABLED_ENVIRONMENT;
+    } catch {
+      this.ready = false;
+    }
+    this.syncGameplay();
+  }
+
+  gameplayStart(): void {
+    this.gameplayWanted = true;
+    this.syncGameplay();
+  }
+
+  gameplayStop(): void {
+    this.gameplayWanted = false;
+    this.syncGameplay();
+  }
 
   async showRewarded(placement: AdPlacement): Promise<boolean> {
     const sdk = this.findSdk();
@@ -53,7 +83,19 @@ export class AdService {
 
   private findSdk(): CrazyGamesSdk | null {
     const sdk = window.CrazyGames?.SDK;
-    return sdk?.ad ? sdk : null;
+    return this.ready && sdk ? sdk : null;
+  }
+
+  private syncGameplay(): void {
+    const sdk = this.findSdk();
+    if (!sdk || this.gameplayActive === this.gameplayWanted) return;
+    try {
+      if (this.gameplayWanted) sdk.game.gameplayStart();
+      else sdk.game.gameplayStop();
+      this.gameplayActive = this.gameplayWanted;
+    } catch {
+      return;
+    }
   }
 
   private requestSdkAd(sdk: CrazyGamesSdk, type: SdkAdType): Promise<boolean> {

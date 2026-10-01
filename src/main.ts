@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { AdService } from './core/ads';
 import { EventBus, type GameEvents } from './core/events';
 import { Health } from './core/health';
+import { bindLocaleEvents } from './i18n';
 import { HighScores } from './core/highScores';
 import { Input } from './core/input';
 import { MetaProgression } from './core/metaProgression';
@@ -75,6 +76,7 @@ function bootstrap(): void {
   const loop = new GameLoop();
   const lifecycle = createRunLifecycle({
     events,
+    ads,
     input,
     player,
     health,
@@ -118,6 +120,12 @@ function bootstrap(): void {
     player.knockback(deltaX / length, deltaZ / length, CONTACT_KNOCKBACK_SPEED);
   }
 
+  bindLocaleEvents(events);
+  void ads.initialize();
+  loop.onPauseChange((paused) => {
+    if (paused) ads.gameplayStop();
+    else if (lifecycle.isRunning) ads.gameplayStart();
+  });
   wireSoundEvents(events, new SoundFx());
   events.on('KNOCKED_OUT', lifecycle.knockOut);
   events.on('LEVEL_UP', () => input.setEnabled(false));

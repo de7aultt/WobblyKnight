@@ -10,6 +10,7 @@ export class GameLoop {
   private elapsed = 0;
   private running = false;
   private pauseCount = 0;
+  private pauseListeners: Array<(paused: boolean) => void> = [];
 
   onTick(callback: TickCallback): void {
     this.tickCallbacks.push(callback);
@@ -23,12 +24,20 @@ export class GameLoop {
     return this.pauseCount > 0;
   }
 
+  onPauseChange(listener: (paused: boolean) => void): void {
+    this.pauseListeners.push(listener);
+  }
+
   pause(): void {
+    const wasPaused = this.isPaused;
     this.pauseCount += 1;
+    if (!wasPaused) this.pauseListeners.forEach((listener) => listener(true));
   }
 
   resume(): void {
+    const wasPaused = this.isPaused;
     this.pauseCount = Math.max(0, this.pauseCount - 1);
+    if (wasPaused && !this.isPaused) this.pauseListeners.forEach((listener) => listener(false));
   }
 
   start(): void {
