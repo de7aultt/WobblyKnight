@@ -35,6 +35,7 @@ const MAX_STEPS_PER_FRAME = 12;
 
 export class FlailChain {
   readonly nodes: Particle[] = [];
+  readonly links: Particle[];
   private readonly restLengths: number[] = [];
   private readonly anchorFrom = new THREE.Vector3();
   private readonly anchorTo = new THREE.Vector3();
@@ -51,7 +52,12 @@ export class FlailChain {
     }
     this.nodes.push(createParticle(anchorPosition, ballMass, ballRadius));
     this.restLengths.push(ballLinkLength);
+    this.links = this.nodes.slice(1, -1);
     this.reset(anchorPosition);
+  }
+
+  getLinkVelocity(link: Particle, out: THREE.Vector3): THREE.Vector3 {
+    return out.subVectors(link.position, link.previousPosition).divideScalar(FIXED_STEP_SECONDS);
   }
 
   get anchor(): Particle {

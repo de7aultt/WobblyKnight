@@ -33,7 +33,7 @@ function bootstrap(): void {
   const lights = createLights(scene);
   createArena(scene);
 
-  const input = new Input(canvas, camera);
+  const input = new Input(camera);
   const player = new Player(scene, input);
 
   const sparks = new ImpactSparks(scene);
@@ -62,7 +62,7 @@ function bootstrap(): void {
     events.emit('TICK', { delta, elapsed });
     player.update(delta);
     spawner.update(delta, player.position);
-    combat.update(delta, player.chain, spawner.enemies);
+    combat.update(delta, player.chain, spawner.enemies, player.position);
     sparks.update(delta);
     aleMugs.update(delta);
     cameraFollow.update(player.position, delta);

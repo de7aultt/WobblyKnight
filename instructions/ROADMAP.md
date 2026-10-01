@@ -98,3 +98,10 @@
 
 ## Ad-Hoc / Quality-of-Life (QOL) Tasks
 *(Critical bug fixes and balance tweaks take absolute priority over mainline milestones)*
+
+### [x] QOL 1: Pure WASD Arcade Controls & Chain Dead-Zone Fix
+- **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
+- **Scope:**
+  - Switch to pure WASD / Arrow keys control: knight smoothly rotates toward movement vector with angular inertia (no mouse required). Spinning W-D-S-A whips flail into orbit.
+  - Fix close-combat dead zone: intermediate chain links also check hitboxes/damage, and knight body pushes enemies away with a radial shove.
+- **Verification:** WASD controls feel natural and responsive without mouse; enemies cannot hug the knight or get stuck inside the dead zone.

@@ -69,6 +69,12 @@ export class Enemy {
     this.knockVelocity.z += directionZ * strength;
   }
 
+  stagger(seconds: number): void {
+    if (this.state !== 'CHASING') return;
+    this.state = 'STAGGERED';
+    this.staggerTimer = seconds;
+  }
+
   receiveHit(damage: number, impulse: THREE.Vector3): void {
     this.hitCooldown = HIT_COOLDOWN_SECONDS;
     this.health -= damage;

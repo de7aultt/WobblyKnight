@@ -10,11 +10,9 @@ import { createKnightMesh, type KnightRig } from './knightMesh';
 const MAX_SPEED = 7;
 const ACCELERATION_RATE = 10;
 const DECELERATION_RATE = 7;
-const TURN_SPEED = 12;
+const TURN_SPEED = 14;
 const KNIGHT_RADIUS = 0.7;
 const WALK_CYCLE_RATE = 2.2;
-const MIN_FACING_SPEED = 0.5;
-const MIN_AIM_DISTANCE = 0.3;
 
 function shortestAngle(from: number, to: number): number {
   const difference = to - from;
@@ -30,7 +28,7 @@ export class Player {
   private readonly previousVelocity = new THREE.Vector3();
   private readonly acceleration = new THREE.Vector3();
   private readonly moveDirection = new THREE.Vector3();
-  private readonly aimTarget = new THREE.Vector3();
+  private readonly desiredVelocity = new THREE.Vector3();
   private readonly anchorPosition = new THREE.Vector3();
   private readonly pose: KnightPose = { walkPhase: 0, speedRatio: 0, tilt: { pitch: 0, roll: 0 } };
   private yaw = 0;
@@ -53,6 +51,7 @@ export class Player {
 
   update(deltaSeconds: number): void {
     if (deltaSeconds <= 0) return;
+    this.input.getMoveDirection(this.moveDirection);
     this.updateMovement(deltaSeconds);
     const yawRate = this.updateFacing(deltaSeconds);
     this.updatePose(deltaSeconds, yawRate);
@@ -63,13 +62,13 @@ export class Player {
   }
 
   private updateMovement(deltaSeconds: number): void {
-    this.input.getMoveDirection(this.moveDirection);
     const hasInput = this.moveDirection.lengthSq() > 0;
     const rate = hasInput ? ACCELERATION_RATE : DECELERATION_RATE;
     const blend = 1 - Math.exp(-rate * deltaSeconds);
 
     this.previousVelocity.copy(this.velocity);
-    this.velocity.lerp(this.moveDirection.multiplyScalar(MAX_SPEED), blend);
+    this.desiredVelocity.copy(this.moveDirection).multiplyScalar(MAX_SPEED);
+    this.velocity.lerp(this.desiredVelocity, blend);
     this.acceleration.subVectors(this.velocity, this.previousVelocity).divideScalar(deltaSeconds);
 
     const position = this.rig.root.position;
@@ -80,31 +79,14 @@ export class Player {
   }
 
   private updateFacing(deltaSeconds: number): number {
-    const targetYaw = this.resolveTargetYaw();
-    if (targetYaw === null) return 0;
+    if (this.moveDirection.lengthSq() === 0) return 0;
+    const targetYaw = Math.atan2(this.moveDirection.x, this.moveDirection.z);
     const difference = shortestAngle(this.yaw, targetYaw);
     const maxTurn = TURN_SPEED * deltaSeconds;
     const turn = Math.min(Math.max(difference, -maxTurn), maxTurn);
     this.yaw += turn;
     this.rig.root.rotation.y = this.yaw;
     return turn / deltaSeconds;
-  }
-
-  private resolveTargetYaw(): number | null {
-    const position = this.rig.root.position;
-    const speed = Math.hypot(this.velocity.x, this.velocity.z);
-    const prefersMovement = this.input.isAimIdle() && speed > MIN_FACING_SPEED;
-
-    if (!prefersMovement) {
-      const aim = this.input.getAimTarget(this.aimTarget);
-      if (aim) {
-        const deltaX = aim.x - position.x;
-        const deltaZ = aim.z - position.z;
-        if (Math.hypot(deltaX, deltaZ) > MIN_AIM_DISTANCE) return Math.atan2(deltaX, deltaZ);
-      }
-    }
-    if (speed > MIN_FACING_SPEED) return Math.atan2(this.velocity.x, this.velocity.z);
-    return null;
   }
 
   private updatePose(deltaSeconds: number, yawRate: number): void {
