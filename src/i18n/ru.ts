@@ -132,5 +132,9 @@ export const ru: Record<TranslationKey, string> = {
   'enemy.unlocked': 'Новый враг',
   'enemy.bomber.name': 'Пьяный бомбардир',
   'enemy.shieldGuard.name': 'Бронированный щитоносец',
-  'enemy.ghoul.name': 'Вампир-гуль'
+  'enemy.ghoul.name': 'Вампир-гуль',
+  'pause.title': 'ПАУЗА',
+  'pause.resume': 'Продолжить бой',
+  'pause.settings': 'Настройки',
+  'pause.retreat': 'Отступить в таверну'
 };

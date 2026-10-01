@@ -66,6 +66,13 @@ export class SoundFx {
     playNoise(synth, { filter: 'highpass', from: 3000, to: 1200, duration: 0.12, gain: 0.22 });
   }
 
+  playBottleShatter(): void {
+    const synth = this.resolve();
+    if (!synth) return;
+    playTone(synth, { type: 'sine', from: 95, to: 38, duration: 0.3, gain: 0.12 });
+    playNoise(synth, { filter: 'highpass', from: 3000, to: 1200, duration: 0.12, gain: 0.07 });
+  }
+
   private outputGain(): number {
     return this.muted ? 0 : MASTER_VOLUME * this.volume;
   }

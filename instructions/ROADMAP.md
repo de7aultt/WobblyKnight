@@ -233,7 +233,7 @@
 
 ---
 
-### [ ] QOL 7: ESC Pause Menu & Bottle Audio Balance
+### [x] QOL 7: ESC Pause Menu & Bottle Audio Balance
 - **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
 - **Scope:**
   - ESC key opens Pause Menu during combat (freezes simulation via game loop).

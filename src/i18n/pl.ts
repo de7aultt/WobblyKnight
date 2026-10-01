@@ -132,5 +132,9 @@ export const pl: Record<TranslationKey, string> = {
   'enemy.unlocked': 'Nowy wróg',
   'enemy.bomber.name': 'Pijany Bombardier',
   'enemy.shieldGuard.name': 'Opancerzony Tarczownik',
-  'enemy.ghoul.name': 'Wampiryczny Ghul'
+  'enemy.ghoul.name': 'Wampiryczny Ghul',
+  'pause.title': 'PAUZA',
+  'pause.resume': 'Wznów walkę',
+  'pause.settings': 'Ustawienia',
+  'pause.retreat': 'Wycofaj się do karczmy'
 };

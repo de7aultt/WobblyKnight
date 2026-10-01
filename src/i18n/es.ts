@@ -132,5 +132,9 @@ export const es: Record<TranslationKey, string> = {
   'enemy.unlocked': 'Nuevo enemigo',
   'enemy.bomber.name': 'Bombardero Borracho',
   'enemy.shieldGuard.name': 'Guardia Escudero Blindado',
-  'enemy.ghoul.name': 'Necrófago Vampiro'
+  'enemy.ghoul.name': 'Necrófago Vampiro',
+  'pause.title': 'PAUSA',
+  'pause.resume': 'Reanudar pelea',
+  'pause.settings': 'Ajustes',
+  'pause.retreat': 'Retirarse a la taberna'
 };

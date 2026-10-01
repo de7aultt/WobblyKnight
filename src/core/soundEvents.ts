@@ -10,7 +10,8 @@ export function wireSoundEvents(events: GameEventBus, sound: SoundFx): void {
     if (damaged) sound.playHit(true);
   });
   events.on('HEART_RESTORED', () => sound.playMugPickup());
-  events.on('BOMB_EXPLODED', () => sound.playBossStun());
+  events.on('BOMB_EXPLODED', () => sound.playBottleShatter());
+  events.on('BOSS_BOTTLE_SHATTER', () => sound.playBottleShatter());
   events.on('KNOCKED_OUT', () => sound.playBossStun());
   events.on('KNIGHT_REVIVED', () => sound.playLevelUp());
   events.on('SHOP_PURCHASE', () => sound.playMugPickup());

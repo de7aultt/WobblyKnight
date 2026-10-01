@@ -20,6 +20,7 @@ import { Player } from './entities/player';
 import { STOMP_RADIUS, STOMP_STUN_SECONDS } from './entities/heroSkill';
 import { Spawner } from './entities/spawner';
 import { SpikeTrail } from './entities/spikeTrail';
+import { wireHazardEvents } from './game/hazardEvents';
 import { createRunLifecycle } from './game/runLifecycle';
 import { Combat } from './physics/combat';
 import { CONTACT_WINDUP_SECONDS, ContactTracker } from './physics/knightDamage';
@@ -35,11 +36,10 @@ import { mountEnemyToast } from './ui/enemyToast';
 import { mountGameOverController } from './ui/gameOverController';
 import { mountHud } from './ui/hud';
 import { mountLobby } from './ui/lobbyView';
+import { mountPauseModal } from './ui/pauseModal';
 import { mountUpgradeModal } from './ui/upgradeModal';
 
-const BOSS_EXPLOSION_BURSTS = 6;
 const CONTACT_DAMAGE = 1;
-const BOMB_SPARK_INTENSITY = 1.4;
 const CONTACT_KNOCKBACK_SPEED = 9;
 const DAMAGE_FLASH_RATE = 14;
 const STOMP_SPARK_COUNT = 8;
@@ -98,7 +98,6 @@ function bootstrap(): void {
   });
   const contacts = new ContactTracker();
   const bossPush = new THREE.Vector3();
-  const explosionPoint = new THREE.Vector3();
   const stompCenter = new THREE.Vector3();
   let wasDashing = false;
 
@@ -107,19 +106,6 @@ function bootstrap(): void {
     player.applyStats();
     if (!health.isKnockedOut) input.setEnabled(true);
     events.emit('PERK_ACQUIRED', { perkId, level: stats.levelOf(perkId) });
-  }
-
-  function explodeBoss(x: number, z: number, mugCount: number): void {
-    runStats.addEnemy();
-    aleMugs.spawnBurst(x, z, mugCount);
-    for (let index = 0; index < BOSS_EXPLOSION_BURSTS; index++) {
-      explosionPoint.set(x + (Math.random() - 0.5) * 3, 1 + Math.random() * 3, z + (Math.random() - 0.5) * 3);
-      sparks.burst(explosionPoint, 1.5);
-    }
-  }
-
-  function applyKnightHit({ dirX, dirZ, damage, knockback }: GameEvents['HAZARD_HIT']): void {
-    if (health.takeDamage(damage)) player.knockback(dirX, dirZ, knockback);
   }
 
   function applyContactDamage(deltaSeconds: number): void {
@@ -139,6 +125,13 @@ function bootstrap(): void {
     player.knockback(deltaX / length, deltaZ / length, CONTACT_KNOCKBACK_SPEED);
   }
 
+  function returnToTavern(): void {
+    lifecycle.returnToTavern();
+    lobby.show();
+    settings.announce();
+    armory.announce();
+  }
+
   bindLocaleEvents(events);
   void ads.initialize();
   loop.onPauseChange((paused) => {
@@ -146,6 +139,7 @@ function bootstrap(): void {
     else if (lifecycle.isRunning) ads.gameplayStart();
   });
   wireSoundEvents(events, new SoundFx());
+  wireHazardEvents({ events, health, player, sparks, aleMugs, runStats });
   events.on('KNOCKED_OUT', lifecycle.knockOut);
   events.on('LEVEL_UP', () => input.setEnabled(false));
   events.on('ENEMY_DEFEATED', ({ x, z, smashed }) => {
@@ -158,17 +152,6 @@ function bootstrap(): void {
     if (stats.momentumLevel > 0) stats.momentum.registerHit();
   });
   events.on('RUN_RESET', () => spikeTrail.clear());
-  events.on('BOSS_SLAM', applyKnightHit);
-  events.on('HAZARD_HIT', applyKnightHit);
-  events.on('BOMB_EXPLODED', ({ x, z }) => {
-    explosionPoint.set(x, 0.6, z);
-    sparks.burst(explosionPoint, BOMB_SPARK_INTENSITY);
-  });
-  events.on('BOSS_BOTTLE_SHATTER', ({ x, z }) => {
-    explosionPoint.set(x, 0.5, z);
-    sparks.burst(explosionPoint, 1);
-  });
-  events.on('BOSS_DEFEATED', ({ x, z, mugCount }) => explodeBoss(x, z, mugCount));
   events.on('ARMORY_CHANGED', ({ hero, weapon, arena: arenaId }) => {
     player.applyLoadout(hero, weapon);
     arena.applyTheme(arenaId);
@@ -203,12 +186,18 @@ function bootstrap(): void {
     ads,
     onRevive: lifecycle.revive,
     onRestart: lifecycle.restart,
-    onReturnToTavern: () => {
-      lifecycle.returnToTavern();
-      lobby.show();
-  settings.announce();
-  armory.announce();
-    }
+    onReturnToTavern: returnToTavern
+  });
+  mountPauseModal({
+    root: uiRoot,
+    events,
+    loop,
+    runStats,
+    highScores,
+    meta,
+    settings,
+    isRunActive: () => lifecycle.isRunning,
+    onRetreat: returnToTavern
   });
   lobby.show();
 

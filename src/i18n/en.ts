@@ -130,7 +130,11 @@ export const en = {
   'enemy.unlocked': 'New foe',
   'enemy.bomber.name': 'Drunken Bomber',
   'enemy.shieldGuard.name': 'Armored Shield Guard',
-  'enemy.ghoul.name': 'Vampire Ghoul'
+  'enemy.ghoul.name': 'Vampire Ghoul',
+  'pause.title': 'PAUSED',
+  'pause.resume': 'Resume Brawl',
+  'pause.settings': 'Settings',
+  'pause.retreat': 'Retreat to Tavern'
 } as const;
 
 export type TranslationKey = keyof typeof en;
