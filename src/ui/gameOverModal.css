@@ -129,6 +129,13 @@
   box-shadow: 0 6px 0 #6b2d0f, 0 12px 28px rgba(0, 0, 0, 0.5);
 }
 
+.game-over__button--secondary {
+  color: #fff6e0;
+  background: linear-gradient(180deg, #5b4636 0%, #3a2a1e 100%);
+  border-color: #241810;
+  box-shadow: 0 5px 0 #241810, 0 10px 22px rgba(0, 0, 0, 0.5);
+}
+
 .game-over__button--used {
   opacity: 0.55;
 }

@@ -4,6 +4,7 @@ import { EventBus, type GameEvents } from './core/events';
 import { Health } from './core/health';
 import { HighScores } from './core/highScores';
 import { Input } from './core/input';
+import { MetaProgression } from './core/metaProgression';
 import { GameLoop } from './core/loop';
 import type { PerkId } from './core/perks';
 import { PlayerStats } from './core/playerStats';
@@ -26,7 +27,7 @@ import { showMockAdOverlay } from './ui/adOverlay';
 import { mountBossHud } from './ui/bossHud';
 import { mountGameOverController } from './ui/gameOverController';
 import { mountHud } from './ui/hud';
-import { mountStartOverlay } from './ui/startOverlay';
+import { mountLobby } from './ui/lobbyView';
 import { mountUpgradeModal } from './ui/upgradeModal';
 
 const BOSS_KNOCKBACK_SPEED = 24;
@@ -62,6 +63,7 @@ function bootstrap(): void {
   const health = new Health(events);
   const runStats = new RunStats();
   const highScores = new HighScores();
+  const meta = new MetaProgression();
   const ads = new AdService((durationMs, slot) => showMockAdOverlay(uiRoot, durationMs, slot));
   const input = new Input(camera);
   const player = new Player(scene, input, stats);
@@ -71,7 +73,19 @@ function bootstrap(): void {
   const aleMugs = new AleMugField(scene);
   const spawner = new Spawner(scene, events);
   const loop = new GameLoop();
-  const lifecycle = createRunLifecycle({ events, input, player, health, stats, progression, spawner, aleMugs, runStats, sparks });
+  const lifecycle = createRunLifecycle({
+    events,
+    input,
+    player,
+    health,
+    stats,
+    progression,
+    meta,
+    spawner,
+    aleMugs,
+    runStats,
+    sparks
+  });
   const contacts = new ContactTracker();
   const bossPush = new THREE.Vector3();
   const explosionPoint = new THREE.Vector3();
@@ -105,7 +119,6 @@ function bootstrap(): void {
   }
 
   wireSoundEvents(events, new SoundFx());
-  events.on('GAME_START', lifecycle.start);
   events.on('KNOCKED_OUT', lifecycle.knockOut);
   events.on('LEVEL_UP', () => input.setEnabled(false));
   events.on('ENEMY_DEFEATED', ({ x, z, smashed }) => {
@@ -127,17 +140,23 @@ function bootstrap(): void {
   mountHud(uiRoot, events, progression.snapshot());
   mountBossHud(uiRoot, events);
   mountUpgradeModal({ root: uiRoot, events, loop, stats, onPerkChosen: handlePerkChosen });
+  const lobby = mountLobby({ root: uiRoot, events, meta, highScores, onEnterBrawl: lifecycle.start });
   mountGameOverController({
     root: uiRoot,
     events,
     loop,
     runStats,
     highScores,
+    meta,
     ads,
     onRevive: lifecycle.revive,
-    onRestart: lifecycle.restart
+    onRestart: lifecycle.restart,
+    onReturnToTavern: () => {
+      lifecycle.returnToTavern();
+      lobby.show();
+    }
   });
-  mountStartOverlay(uiRoot, events);
+  lobby.show();
 
   loop.onTick((delta, elapsed) => {
     events.emit('TICK', { delta, elapsed });
@@ -153,7 +172,7 @@ function bootstrap(): void {
     applyContactDamage(delta);
     if (spawner.boss?.computeKnightPush(player.position, bossPush)) player.nudge(bossPush.x, bossPush.z);
     combat.update(delta, player.chains, spawner.targets, player.position, player.isDashing);
-    aleMugs.update(delta, player.position, stats.magnetMultiplier, () => {
+    aleMugs.update(delta, player.position, stats.magnetRadiusMultiplier, stats.magnetMultiplier, () => {
       progression.collectMug();
       runStats.addMug();
       events.emit('MUG_COLLECTED');

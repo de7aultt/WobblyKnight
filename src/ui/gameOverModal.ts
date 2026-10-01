@@ -20,6 +20,7 @@ export interface GameOverActions {
   revive(): Promise<boolean>;
   doubleAle(): Promise<DoubleAleResult | null>;
   restart(): Promise<void>;
+  returnToTavern(): Promise<void>;
 }
 
 function createElement(tag: keyof HTMLElementTagNameMap, className: string, text = ''): HTMLElement {
@@ -75,6 +76,11 @@ export function openGameOverModal(root: HTMLElement, view: GameOverView, actions
   restartButton.className = 'game-over__button game-over__button--primary';
   restartButton.textContent = t('gameOver.restart');
 
+  const tavernButton = document.createElement('button');
+  tavernButton.type = 'button';
+  tavernButton.className = 'game-over__button game-over__button--secondary';
+  tavernButton.textContent = t('gameOver.returnTavern');
+
   let reviveAvailable = view.canRevive;
   let doubleAvailable = view.canDoubleAle;
 
@@ -82,6 +88,7 @@ export function openGameOverModal(root: HTMLElement, view: GameOverView, actions
     reviveButton.disabled = busy || !reviveAvailable;
     doubleButton.disabled = busy || !doubleAvailable;
     restartButton.disabled = busy;
+    tavernButton.disabled = busy;
     reviveButton.classList.toggle('game-over__button--used', !reviveAvailable);
     doubleButton.classList.toggle('game-over__button--used', !doubleAvailable);
   }
@@ -107,10 +114,15 @@ export function openGameOverModal(root: HTMLElement, view: GameOverView, actions
     await actions.restart();
   });
 
+  tavernButton.addEventListener('click', async () => {
+    refreshButtons(true);
+    await actions.returnToTavern();
+  });
+
   const panels = createElement('div', 'game-over__panels');
   panels.append(runPanel, bestPanel);
   const buttons = createElement('div', 'game-over__actions');
-  buttons.append(reviveButton, doubleButton, restartButton);
+  buttons.append(reviveButton, doubleButton, restartButton, tavernButton);
   overlay.append(createElement('h2', 'game-over__banner', t('gameOver.banner')), panels, buttons);
 
   renderValues(view.summary, view.best);

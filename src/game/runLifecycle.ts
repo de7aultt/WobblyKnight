@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { GameEventBus } from '../core/events';
 import type { Health } from '../core/health';
 import type { Input } from '../core/input';
+import type { MetaProgression } from '../core/metaProgression';
 import type { PlayerStats } from '../core/playerStats';
 import type { Progression } from '../core/progression';
 import type { RunStats } from '../core/runStats';
@@ -23,6 +24,7 @@ export interface RunLifecycleDeps {
   health: Health;
   stats: PlayerStats;
   progression: Progression;
+  meta: MetaProgression;
   spawner: Spawner;
   aleMugs: AleMugField;
   runStats: RunStats;
@@ -34,13 +36,18 @@ export interface RunLifecycle {
   knockOut(): void;
   revive(): void;
   restart(): void;
+  returnToTavern(): void;
 }
 
 export function createRunLifecycle(deps: RunLifecycleDeps): RunLifecycle {
-  const { events, input, player, health, stats, progression, spawner, aleMugs, runStats, sparks } = deps;
+  const { events, input, player, health, stats, progression, meta, spawner, aleMugs, runStats, sparks } = deps;
   const sparkPoint = new THREE.Vector3();
 
   function start(): void {
+    const effective = meta.getEffectiveStats();
+    stats.applyMeta(effective);
+    health.setMax(effective.maxHearts);
+    player.applyStats();
     input.setEnabled(true);
     runStats.start();
     spawner.activate(player.position);
@@ -70,7 +77,7 @@ export function createRunLifecycle(deps: RunLifecycleDeps): RunLifecycle {
     events.emit('KNIGHT_REVIVED');
   }
 
-  function restart(): void {
+  function resetRun(): void {
     spawner.reset();
     aleMugs.clear();
     stats.reset();
@@ -79,8 +86,17 @@ export function createRunLifecycle(deps: RunLifecycleDeps): RunLifecycle {
     player.reset();
     runStats.reset();
     events.emit('RUN_RESET');
+  }
+
+  function restart(): void {
+    resetRun();
     start();
   }
 
-  return { start, knockOut, revive, restart };
+  function returnToTavern(): void {
+    resetRun();
+    input.setEnabled(false);
+  }
+
+  return { start, knockOut, revive, restart, returnToTavern };
 }

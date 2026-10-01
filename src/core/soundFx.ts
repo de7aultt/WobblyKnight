@@ -1,11 +1,17 @@
 import { getAudioContext } from './audio';
-import { createSynthContext, playNoise, playTone, type SynthContext } from './soundSynth';
+import { MASTER_VOLUME, createSynthContext, playNoise, playTone, type SynthContext } from './soundSynth';
 
 const LEVEL_UP_NOTES: readonly number[] = [523.25, 659.25, 783.99, 1046.5];
 const CLANG_PARTIALS: readonly number[] = [180, 270, 410, 655];
 
 export class SoundFx {
   private synth: SynthContext | null = null;
+  private muted = false;
+
+  setMuted(muted: boolean): void {
+    this.muted = muted;
+    if (this.synth) this.synth.master.gain.value = muted ? 0 : MASTER_VOLUME;
+  }
 
   playHit(heavy: boolean): void {
     const synth = this.resolve();
@@ -61,7 +67,10 @@ export class SoundFx {
   private resolve(): SynthContext | null {
     const ctx = getAudioContext();
     if (!ctx || ctx.state !== 'running') return null;
-    if (!this.synth || this.synth.ctx !== ctx) this.synth = createSynthContext(ctx);
+    if (!this.synth || this.synth.ctx !== ctx) {
+      this.synth = createSynthContext(ctx);
+      this.synth.master.gain.value = this.muted ? 0 : MASTER_VOLUME;
+    }
     return this.synth;
   }
 }

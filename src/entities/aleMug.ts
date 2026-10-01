@@ -142,8 +142,14 @@ export class AleMugField {
     }
   }
 
-  update(deltaSeconds: number, knightPosition: THREE.Vector3, magnetMultiplier: number, onCollect: () => void): void {
-    const radius = BASE_MAGNET_RADIUS * magnetMultiplier;
+  update(
+    deltaSeconds: number,
+    knightPosition: THREE.Vector3,
+    radiusMultiplier: number,
+    pullMultiplier: number,
+    onCollect: () => void
+  ): void {
+    const radius = BASE_MAGNET_RADIUS * radiusMultiplier;
     for (let index = this.mugs.length - 1; index >= 0; index--) {
       const mug = this.mugs[index];
       const deltaX = knightPosition.x - mug.position.x;
@@ -160,7 +166,7 @@ export class AleMugField {
         onCollect();
         continue;
       }
-      if (distance <= radius) mug.pullToward(deltaX, deltaZ, distance, radius, magnetMultiplier, deltaSeconds);
+      if (distance <= radius) mug.pullToward(deltaX, deltaZ, distance, radius, pullMultiplier, deltaSeconds);
       else mug.releasePull();
       mug.update(deltaSeconds);
     }

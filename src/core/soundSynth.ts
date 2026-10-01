@@ -1,6 +1,7 @@
 export interface SynthContext {
   ctx: AudioContext;
   output: AudioNode;
+  master: GainNode;
   noise: AudioBuffer;
 }
 
@@ -31,6 +32,7 @@ export interface NoiseOptions {
   attack?: number;
 }
 
+export const MASTER_VOLUME = 0.7;
 const SILENCE = 0.0001;
 const DEFAULT_ATTACK = 0.005;
 
@@ -43,7 +45,7 @@ function createNoiseBuffer(ctx: AudioContext): AudioBuffer {
 
 export function createSynthContext(ctx: AudioContext): SynthContext {
   const master = ctx.createGain();
-  master.gain.value = 0.7;
+  master.gain.value = MASTER_VOLUME;
   const compressor = ctx.createDynamicsCompressor();
   compressor.threshold.value = -20;
   compressor.knee.value = 24;
@@ -52,7 +54,7 @@ export function createSynthContext(ctx: AudioContext): SynthContext {
   compressor.release.value = 0.25;
   master.connect(compressor);
   compressor.connect(ctx.destination);
-  return { ctx, output: master, noise: createNoiseBuffer(ctx) };
+  return { ctx, output: master, master, noise: createNoiseBuffer(ctx) };
 }
 
 function createEnvelope(synth: SynthContext, start: number, end: number, gain: number, attack: number): GainNode {

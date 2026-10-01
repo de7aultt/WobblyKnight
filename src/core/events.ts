@@ -8,7 +8,6 @@ export interface ProgressSnapshot {
 }
 
 export interface GameEvents {
-  GAME_START: void;
   RESIZE: { width: number; height: number };
   TICK: { delta: number; elapsed: number };
   ENEMY_DEFEATED: { x: number; z: number; smashed: boolean };
@@ -22,6 +21,8 @@ export interface GameEvents {
   HEALTH_CHANGED: { current: number; max: number; damaged: boolean };
   KNOCKED_OUT: void;
   KNIGHT_REVIVED: void;
+  SHOP_PURCHASE: void;
+  MUTE_CHANGED: { muted: boolean };
   RUN_RESET: void;
   BOSS_SPAWNED: void;
   BOSS_LANDED: void;

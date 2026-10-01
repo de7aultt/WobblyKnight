@@ -85,7 +85,7 @@
 
 ---
 
-### [ ] Sprint 7: Tavern Lobby & Meta-Progression Shop
+### [x] Sprint 7: Tavern Lobby & Meta-Progression Shop
 - **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
 - **Scope:**
   - Tavern Lobby screen before entering combat: displays player's total accumulated Ale Mugs, high scores, and audio mute toggle.

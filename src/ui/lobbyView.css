@@ -1,0 +1,112 @@
+.lobby {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  color: #f6e3c0;
+  background: radial-gradient(ellipse at center, rgba(17, 13, 24, 0.55) 0%, rgba(17, 13, 24, 0.92) 100%);
+}
+
+.lobby__title {
+  font-size: clamp(2.5rem, 9vw, 5.5rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #ffb347;
+  text-shadow: 0 4px 0 #6b2d0f, 0 10px 30px rgba(255, 138, 61, 0.45);
+}
+
+.lobby__tagline {
+  max-width: 32rem;
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  opacity: 0.85;
+}
+
+.lobby__bank {
+  padding: 0.35rem 1.3rem;
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #2a1408;
+  background: linear-gradient(180deg, #ffd978 0%, #e3a62b 100%);
+  border: 3px solid #6b2d0f;
+  border-radius: 999px;
+  box-shadow: 0 5px 0 #6b2d0f;
+}
+
+.lobby__records {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.lobby__badge {
+  padding: 0.25rem 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  background: rgba(74, 46, 26, 0.85);
+  border: 2px solid #6b2d0f;
+  border-radius: 999px;
+}
+
+.lobby__button {
+  min-width: 15rem;
+  padding: 0.9rem 2.4rem;
+  font: inherit;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.lobby__button--primary {
+  margin-top: 0.5rem;
+  padding: 1.05rem 2.8rem;
+  font-size: 1.5rem;
+  color: #2a1408;
+  background: linear-gradient(180deg, #ffc66b 0%, #e8821f 100%);
+  border: 3px solid #6b2d0f;
+  box-shadow: 0 6px 0 #6b2d0f, 0 12px 28px rgba(0, 0, 0, 0.5);
+}
+
+.lobby__button--secondary {
+  color: #fff6e0;
+  background: linear-gradient(180deg, #5b4636 0%, #3a2a1e 100%);
+  border: 3px solid #241810;
+  box-shadow: 0 5px 0 #241810, 0 10px 22px rgba(0, 0, 0, 0.5);
+}
+
+.lobby__button:hover {
+  transform: translateY(-2px);
+}
+
+.lobby__button:active {
+  transform: translateY(4px);
+}
+
+.lobby__mute {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #f6e3c0;
+  background: rgba(74, 46, 26, 0.85);
+  border: 2px solid #6b2d0f;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.lobby__mute:hover {
+  filter: brightness(1.2);
+}

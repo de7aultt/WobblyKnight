@@ -1,5 +1,5 @@
 import './hearts.css';
-import { MAX_HEALTH } from '../core/health';
+import { BASE_MAX_HEARTS } from '../core/baseStats';
 import type { GameEventBus } from '../core/events';
 import { t } from '../i18n';
 
@@ -11,27 +11,35 @@ function replayShake(heart: HTMLElement): void {
   heart.classList.add('heart--hit');
 }
 
+function createHeart(): HTMLElement {
+  const heart = document.createElement('span');
+  heart.className = 'heart';
+  heart.textContent = HEART_GLYPH;
+  heart.addEventListener('animationend', () => heart.classList.remove('heart--hit'));
+  return heart;
+}
+
 export function mountHearts(root: HTMLElement, events: GameEventBus): void {
   const container = document.createElement('div');
   container.className = 'hearts';
   container.title = t('hud.health');
-
-  const hearts: HTMLElement[] = [];
-  for (let index = 0; index < MAX_HEALTH; index++) {
-    const heart = document.createElement('span');
-    heart.className = 'heart';
-    heart.textContent = HEART_GLYPH;
-    heart.addEventListener('animationend', () => heart.classList.remove('heart--hit'));
-    hearts.push(heart);
-    container.append(heart);
-  }
   root.append(container);
 
-  let previous = MAX_HEALTH;
-  events.on('HEALTH_CHANGED', ({ current, damaged }) => {
+  let hearts: HTMLElement[] = [];
+  let previous = BASE_MAX_HEARTS;
+
+  function rebuild(count: number): void {
+    hearts = Array.from({ length: count }, createHeart);
+    container.replaceChildren(...hearts);
+  }
+
+  rebuild(BASE_MAX_HEARTS);
+
+  events.on('HEALTH_CHANGED', ({ current, max, damaged }) => {
+    if (hearts.length !== max) rebuild(max);
     hearts.forEach((heart, index) => heart.classList.toggle('heart--empty', index >= current));
     if (damaged) {
-      for (let index = current; index < previous; index++) replayShake(hearts[index]);
+      for (let index = current; index < previous && index < hearts.length; index++) replayShake(hearts[index]);
     }
     previous = current;
   });

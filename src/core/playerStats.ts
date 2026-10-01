@@ -1,3 +1,5 @@
+import { BASE_DASH_COOLDOWN_SECONDS } from './baseStats';
+import type { EffectiveMetaStats } from './metaProgression';
 import type { PerkId } from './perks';
 
 const CHAIN_REACH_PER_LEVEL = 0.4;
@@ -12,17 +14,30 @@ export class PlayerStats {
   magnetLevel = 0;
   hasDoubleFlail = false;
   hasDash = false;
+  metaDamageMultiplier = 1;
+  metaMagnetRadiusMultiplier = 1;
+  dashCooldownSeconds = BASE_DASH_COOLDOWN_SECONDS;
 
   get chainReach(): number {
     return 1 + this.chainReachLevel * CHAIN_REACH_PER_LEVEL;
   }
 
   get impactMultiplier(): number {
-    return 1 + this.spikeLevel * IMPACT_PER_LEVEL;
+    return (1 + this.spikeLevel * IMPACT_PER_LEVEL) * this.metaDamageMultiplier;
   }
 
   get magnetMultiplier(): number {
     return 1 + this.magnetLevel;
+  }
+
+  get magnetRadiusMultiplier(): number {
+    return this.magnetMultiplier * this.metaMagnetRadiusMultiplier;
+  }
+
+  applyMeta(meta: EffectiveMetaStats): void {
+    this.metaDamageMultiplier = meta.damageMultiplier;
+    this.metaMagnetRadiusMultiplier = meta.magnetRadiusMultiplier;
+    this.dashCooldownSeconds = meta.dashCooldownSeconds;
   }
 
   levelOf(id: PerkId): number {

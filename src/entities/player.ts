@@ -146,7 +146,7 @@ export class Player {
     const wanted = new THREE.Vector3();
     if (this.moveDirection.lengthSq() > 0) wanted.copy(this.moveDirection);
     else wanted.set(Math.sin(this.yaw), 0, Math.cos(this.yaw));
-    if (!this.dash.tryStart(wanted)) return;
+    if (!this.dash.tryStart(wanted, this.stats.dashCooldownSeconds)) return;
     this.yaw = Math.atan2(this.dash.direction.x, this.dash.direction.z);
   }
 

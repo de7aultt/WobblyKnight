@@ -1,17 +1,20 @@
+import { BASE_MAX_HEARTS } from './baseStats';
 import type { GameEventBus } from './events';
-
-export const MAX_HEALTH = 3;
 
 const INVULNERABLE_SECONDS = 1;
 const REVIVE_INVULNERABLE_SECONDS = 2;
 
 export class Health {
-  readonly max = MAX_HEALTH;
-  private current = MAX_HEALTH;
+  private maxHealth = BASE_MAX_HEARTS;
+  private current = BASE_MAX_HEARTS;
   private invulnerableRemaining = 0;
   private knockedOut = false;
 
   constructor(private readonly events: GameEventBus) {}
+
+  get max(): number {
+    return this.maxHealth;
+  }
 
   get value(): number {
     return this.current;
@@ -33,11 +36,16 @@ export class Health {
     this.invulnerableRemaining = Math.max(0, this.invulnerableRemaining - deltaSeconds);
   }
 
+  setMax(maxHealth: number): void {
+    this.maxHealth = Math.max(1, Math.floor(maxHealth));
+    this.reset();
+  }
+
   takeDamage(amount: number): boolean {
     if (this.isProtected || amount <= 0) return false;
     this.current = Math.max(0, this.current - amount);
     this.invulnerableRemaining = INVULNERABLE_SECONDS;
-    this.events.emit('HEALTH_CHANGED', { current: this.current, max: this.max, damaged: true });
+    this.emitChange(true);
     if (this.current === 0) {
       this.knockedOut = true;
       this.events.emit('KNOCKED_OUT');
@@ -46,16 +54,20 @@ export class Health {
   }
 
   healFull(): void {
-    this.current = this.max;
+    this.current = this.maxHealth;
     this.knockedOut = false;
     this.invulnerableRemaining = REVIVE_INVULNERABLE_SECONDS;
-    this.events.emit('HEALTH_CHANGED', { current: this.current, max: this.max, damaged: false });
+    this.emitChange(false);
   }
 
   reset(): void {
-    this.current = this.max;
+    this.current = this.maxHealth;
     this.knockedOut = false;
     this.invulnerableRemaining = 0;
-    this.events.emit('HEALTH_CHANGED', { current: this.current, max: this.max, damaged: false });
+    this.emitChange(false);
+  }
+
+  private emitChange(damaged: boolean): void {
+    this.events.emit('HEALTH_CHANGED', { current: this.current, max: this.maxHealth, damaged });
   }
 }

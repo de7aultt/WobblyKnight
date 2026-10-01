@@ -11,6 +11,8 @@ export function wireSoundEvents(events: GameEventBus, sound: SoundFx): void {
   });
   events.on('KNOCKED_OUT', () => sound.playBossStun());
   events.on('KNIGHT_REVIVED', () => sound.playLevelUp());
+  events.on('SHOP_PURCHASE', () => sound.playMugPickup());
+  events.on('MUTE_CHANGED', ({ muted }) => sound.setMuted(muted));
   events.on('BOSS_SPAWNED', () => sound.playBossRoar());
   events.on('BOSS_TELEGRAPH', () => sound.playBossRoar());
   events.on('BOSS_DEFEATED', () => sound.playBossRoar());

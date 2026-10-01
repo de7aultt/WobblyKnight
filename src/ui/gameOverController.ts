@@ -1,6 +1,7 @@
 import type { AdService } from '../core/ads';
 import type { GameEventBus } from '../core/events';
 import type { HighScores } from '../core/highScores';
+import type { MetaProgression } from '../core/metaProgression';
 import type { GameLoop } from '../core/loop';
 import type { RunStats } from '../core/runStats';
 import { openGameOverModal, type GameOverActions } from './gameOverModal';
@@ -13,13 +14,15 @@ export interface GameOverControllerOptions {
   loop: GameLoop;
   runStats: RunStats;
   highScores: HighScores;
+  meta: MetaProgression;
   ads: AdService;
   onRevive: () => void;
   onRestart: () => void;
+  onReturnToTavern: () => void;
 }
 
 export function mountGameOverController(options: GameOverControllerOptions): void {
-  const { root, events, loop, runStats, highScores, ads, onRevive, onRestart } = options;
+  const { root, events, loop, runStats, highScores, meta, ads, onRevive, onRestart, onReturnToTavern } = options;
   let delayTimer: number | undefined;
   let closeModal: (() => void) | null = null;
   let reviveUsed = false;
@@ -44,19 +47,27 @@ export function mountGameOverController(options: GameOverControllerOptions): voi
       const watched = await ads.showRewarded('double_ale');
       if (!watched) return null;
       doubleUsed = true;
-      highScores.addLifetimeMugs(runStats.doubleMugs());
+      const bonus = runStats.doubleMugs();
+      highScores.addLifetimeMugs(bonus);
+      meta.depositMugs(bonus);
       return { summary: runStats.summary(), best: highScores.snapshot() };
     },
     async restart() {
       await ads.beforeRestart();
       dismiss();
       onRestart();
+    },
+    async returnToTavern() {
+      await ads.beforeRestart();
+      dismiss();
+      onReturnToTavern();
     }
   };
 
   function open(): void {
     loop.pause();
     const summary = runStats.summary();
+    meta.depositMugs(summary.mugsCollected - runStats.credited);
     const record = highScores.recordRun(summary, runStats.credited);
     runStats.markCredited();
     closeModal = openGameOverModal(
