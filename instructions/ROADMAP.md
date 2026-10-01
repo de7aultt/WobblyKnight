@@ -112,6 +112,50 @@
 
 ---
 
+### [x] Sprint 9: Settings Modal & Innate Hero Dash
+- **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
+- **Scope:**
+  - Settings Modal in lobby: Audio sliders, Graphics High/Low shadows, Language switcher.
+  - Innate Spacebar Dash enabled from Level 1; removed drunken_dash from perk pool.
+  - Added 'Iron Armor' defensive perk.
+- **Verification:** Settings persist in LocalStorage, dash works from second 0, audio/graphics toggle cleanly.
+
+---
+
+### [ ] Sprint 10: Tavern Armory Tabs (Heroes, Weapons, Arenas)
+- **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
+- **Scope:**
+  - Expand Tavern Shop into 4 distinct tabs:
+    * **Upgrades:** Existing 4 stat upgrades.
+    * **Heroes:** 3 playable heroes with distinct visuals and unique innate Spacebar skills:
+      1. *Classic Knight:* Whirlwind Dash (innate).
+      2. *Golden Paladin:* Holy Shockwave Stomp (slams ground, stuns all enemies in 5-unit radius).
+      3. *Drunk Barbarian:* Ale Frenzy (grants +50% movement speed & flail knockback boost for 3.5s).
+    * **Weapons:** 3 weapon styles modifying flail mesh & weight:
+      1. *Iron Morningstar* (Default balanced flail).
+      2. *Spiked Battle Cleaver* (Heavier, shorter reach, higher impact damage).
+      3. *Golden Twin-Flail* (Dual light flails with faster swing speed).
+    * **Arenas:** 3 selectable tavern arena themes:
+      1. *Tavern Pit* (Default warm wood & torches).
+      2. *Dungeon Crypt* (Dark cobblestone floor, blue ghostly torches, iron gates).
+      3. *Royal Courtyard* (Marble checkerboard tiles, brass torches, red velvet carpets).
+  - Selected hero, weapon, and arena persist in LocalStorage and apply to 3D scene on run start.
+- **Verification:** Switching heroes, weapons, and arenas renders their respective 3D models and abilities in-game cleanly.
+
+---
+
+### [ ] Sprint 11: Boss Escalation Cycle (Waves 5, 10, 15)
+- **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
+- **Scope:**
+  - Recurring boss wave every 5 levels:
+    * **Wave 5:** *The Giant Butcher* (Heavy cleaver, telegraphed belly charge, wall stun).
+    * **Wave 10:** *The Goblin King* (Faster, throws explosive ale bottles that leave fire puddles).
+    * **Wave 15+:** *The Executioner* (Huge iron axe, wide 360° sweeping whirlwind attack).
+  - Dynamic boss HUD updates with unique titles and crimson health bars.
+- **Verification:** Progressing past level 5, 10, and 15 spawns their respective bosses with unique mechanics.
+
+---
+
 ## Ad-Hoc / Quality-of-Life (QOL) Tasks
 *(Critical bug fixes and balance tweaks take absolute priority over mainline milestones)*
 
@@ -170,3 +214,8 @@
   - Reduce max hearts to 3 (starts with 3 hearts).
   - Add 0.7-second contact timer before enemy deals damage: touching the knight does not instantly deal damage; the enemy must stay in contact for 0.7s continuously to land a hit, giving the player time to react and spin flail/dash.
 - **Verification:** Contact damage feels fair; player can brush past or whip away mobs without instantly losing a heart.
+
+---
+
+### [ ] QOL Batch (Accumulating 4-5 micro-tweaks before execution):
+1. Tune enemy contact attack windup delay: 0.7s -> 0.4s for snappier enemy bites.

@@ -25,7 +25,6 @@ export function toRoman(value: number): string {
 interface PerkSlot {
   element: HTMLElement;
   badge: HTMLElement;
-  cooldownOverlay: HTMLElement | null;
 }
 
 function replayAnimation(element: HTMLElement, className: string): void {
@@ -39,7 +38,7 @@ function createSlot(perk: PerkDefinition): PerkSlot {
   element.className = `perk-slot perk-slot--${perk.tag}`;
   element.title = `${t(perk.titleKey)} - ${t(perk.descKey)}`;
   element.addEventListener('animationend', () => {
-    element.classList.remove('perk-slot--pop', 'perk-slot--ready');
+    element.classList.remove('perk-slot--pop');
   });
 
   const icon = document.createElement('span');
@@ -47,17 +46,10 @@ function createSlot(perk: PerkDefinition): PerkSlot {
   icon.textContent = perk.icon;
   element.append(icon);
 
-  let cooldownOverlay: HTMLElement | null = null;
-  if (perk.id === 'drunken_dash') {
-    cooldownOverlay = document.createElement('span');
-    cooldownOverlay.className = 'perk-slot__cooldown';
-    element.append(cooldownOverlay);
-  }
-
   const badge = document.createElement('span');
   badge.className = 'perk-slot__badge';
   element.append(badge);
-  return { element, badge, cooldownOverlay };
+  return { element, badge };
 }
 
 export function mountPerkTray(root: HTMLElement, events: GameEventBus): void {
@@ -66,7 +58,6 @@ export function mountPerkTray(root: HTMLElement, events: GameEventBus): void {
   root.append(tray);
 
   const slots = new Map<PerkId, PerkSlot>();
-  let previousCooldownRatio = 0;
 
   events.on('PERK_ACQUIRED', ({ perkId, level }) => {
     let slot = slots.get(perkId);
@@ -84,14 +75,5 @@ export function mountPerkTray(root: HTMLElement, events: GameEventBus): void {
   events.on('RUN_RESET', () => {
     slots.clear();
     tray.replaceChildren();
-    previousCooldownRatio = 0;
-  });
-
-  events.on('DASH_COOLDOWN', ({ ratio }) => {
-    const slot = slots.get('drunken_dash');
-    if (!slot?.cooldownOverlay || ratio === previousCooldownRatio) return;
-    slot.cooldownOverlay.style.height = `${ratio * 100}%`;
-    if (ratio === 0 && previousCooldownRatio > 0) replayAnimation(slot.element, 'perk-slot--ready');
-    previousCooldownRatio = ratio;
   });
 }

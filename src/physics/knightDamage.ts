@@ -20,7 +20,8 @@ export class ContactTracker {
     deltaSeconds: number,
     enemies: readonly Enemy[],
     knightPosition: THREE.Vector3,
-    blocked: boolean
+    blocked: boolean,
+    windupSeconds: number
   ): Enemy | null {
     if (blocked) {
       this.timers.clear();
@@ -34,7 +35,7 @@ export class ContactTracker {
       this.seen.add(enemy);
       const elapsed = (this.timers.get(enemy) ?? 0) + deltaSeconds;
       this.timers.set(enemy, elapsed);
-      if (!attacker && elapsed >= CONTACT_WINDUP_SECONDS) attacker = enemy;
+      if (!attacker && elapsed >= windupSeconds) attacker = enemy;
     }
 
     for (const tracked of this.timers.keys()) {

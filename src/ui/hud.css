@@ -134,6 +134,10 @@
   border-color: #2f6f9a;
 }
 
+.perk-slot--defense {
+  border-color: #8a8f99;
+}
+
 .perk-slot--utility {
   border-color: #3f7a3a;
 }
@@ -220,4 +224,27 @@
   .hud__xp {
     width: 28vw;
   }
+}
+
+.dash-indicator {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  pointer-events: none;
+}
+
+.dash-indicator__key {
+  padding: 0.05rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f6e3c0;
+  background: rgba(17, 13, 24, 0.78);
+  border: 2px solid #6b2d0f;
+  border-radius: 8px;
 }

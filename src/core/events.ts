@@ -1,5 +1,6 @@
 import type { Locale } from '../i18n';
 import type { PerkId } from './perks';
+import type { GameSettings } from './settings';
 
 export interface ProgressSnapshot {
   level: number;
@@ -23,7 +24,7 @@ export interface GameEvents {
   KNOCKED_OUT: void;
   KNIGHT_REVIVED: void;
   SHOP_PURCHASE: void;
-  MUTE_CHANGED: { muted: boolean };
+  SETTINGS_CHANGED: GameSettings;
   LOCALE_CHANGED: { locale: Locale };
   RUN_RESET: void;
   BOSS_SPAWNED: void;

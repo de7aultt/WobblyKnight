@@ -4,11 +4,11 @@ export type PerkId =
   | 'longer_chain'
   | 'heavy_spikes'
   | 'double_morningstar'
-  | 'drunken_dash'
+  | 'iron_armor'
   | 'spike_boots'
   | 'ale_magnet';
 
-export type PerkTag = 'offense' | 'mobility' | 'utility';
+export type PerkTag = 'offense' | 'mobility' | 'utility' | 'defense';
 
 export interface PerkDefinition {
   id: PerkId;
@@ -45,12 +45,12 @@ export const PERKS: readonly PerkDefinition[] = [
     icon: '⚔'
   },
   {
-    id: 'drunken_dash',
-    titleKey: 'perk.drunkenDash.title',
-    descKey: 'perk.drunkenDash.desc',
-    tagKey: 'perk.tag.mobility',
-    tag: 'mobility',
-    icon: '🌀'
+    id: 'iron_armor',
+    titleKey: 'perk.ironArmor.title',
+    descKey: 'perk.ironArmor.desc',
+    tagKey: 'perk.tag.defense',
+    tag: 'defense',
+    icon: '🛡️'
   },
   {
     id: 'spike_boots',

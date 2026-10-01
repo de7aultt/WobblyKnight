@@ -114,6 +114,10 @@
   background: #2f6f9a;
 }
 
+.perk-card--defense .perk-card__tag {
+  background: #6d727a;
+}
+
 .perk-card--utility .perk-card__tag {
   background: #3f7a3a;
 }

@@ -1,0 +1,133 @@
+.settings {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  padding: 1.5rem;
+  overflow-y: auto;
+  color: #f6e3c0;
+  background: radial-gradient(ellipse at center, rgba(17, 13, 24, 0.84) 0%, rgba(17, 13, 24, 0.97) 100%);
+}
+
+.settings__title {
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ffb347;
+  text-shadow: 0 4px 0 #6b2d0f, 0 8px 26px rgba(255, 138, 61, 0.4);
+}
+
+.settings__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: min(92vw, 30rem);
+  padding: 0.9rem 1.2rem;
+  text-align: left;
+  background: linear-gradient(180deg, #4a2e1a 0%, #2f1c10 100%);
+  border: 3px solid #6b2d0f;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 2px rgba(255, 198, 107, 0.12), 0 8px 22px rgba(0, 0, 0, 0.5);
+}
+
+.settings__section-title {
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffb347;
+}
+
+.settings__row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.settings__label {
+  min-width: 7.5rem;
+  font-weight: 700;
+}
+
+.settings__value {
+  min-width: 3rem;
+  font-weight: 900;
+  text-align: right;
+  color: #fff6e0;
+}
+
+.settings__slider {
+  flex: 1;
+  height: 0.5rem;
+  accent-color: #ffb347;
+  cursor: pointer;
+}
+
+.settings__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+}
+
+.settings__checkbox {
+  width: 1.3rem;
+  height: 1.3rem;
+  accent-color: #ffb347;
+  cursor: pointer;
+}
+
+.settings__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.settings__choice {
+  padding: 0.45rem 0.9rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #f6e3c0;
+  background: rgba(17, 13, 24, 0.6);
+  border: 2px solid #6b2d0f;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.settings__choice:hover {
+  filter: brightness(1.25);
+}
+
+.settings__choice--active {
+  color: #2a1408;
+  background: linear-gradient(180deg, #ffc66b 0%, #e8821f 100%);
+}
+
+.settings__hint {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  opacity: 0.75;
+}
+
+.settings__close {
+  margin-top: 0.3rem;
+  padding: 0.7rem 2.2rem;
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #2a1408;
+  background: linear-gradient(180deg, #ffc66b 0%, #e8821f 100%);
+  border: 3px solid #6b2d0f;
+  border-radius: 12px;
+  box-shadow: 0 5px 0 #6b2d0f;
+  cursor: pointer;
+}
+
+.settings__close:hover {
+  filter: brightness(1.1);
+}

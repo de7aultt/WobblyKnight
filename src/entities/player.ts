@@ -118,7 +118,7 @@ export class Player {
     if (this.knockedOut) this.moveDirection.set(0, 0, 0);
     this.dash.tick(deltaSeconds);
     const dashWanted = this.input.consumeDashRequest();
-    if (dashWanted && this.stats.hasDash && !this.knockedOut) this.startDash();
+    if (dashWanted && !this.knockedOut) this.startDash();
 
     const dashing = this.dash.isActive;
     if (dashing) this.updateDash(deltaSeconds);

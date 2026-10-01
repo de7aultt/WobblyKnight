@@ -92,7 +92,7 @@
   transform: translateY(4px);
 }
 
-.lobby__mute {
+.lobby__icon-button {
   position: absolute;
   top: 1rem;
   right: 1rem;
@@ -107,37 +107,14 @@
   cursor: pointer;
 }
 
-.lobby__mute:hover {
+.lobby__icon-button:hover {
   filter: brightness(1.2);
 }
 
-.lobby__languages {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  max-width: calc(100vw - 6rem);
+.lobby__mute {
+  right: 1rem;
 }
 
-.lobby__lang {
-  padding: 0.4rem 0.7rem;
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 800;
-  color: #f6e3c0;
-  background: rgba(74, 46, 26, 0.85);
-  border: 2px solid #6b2d0f;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.lobby__lang:hover {
-  filter: brightness(1.2);
-}
-
-.lobby__lang--active {
-  color: #2a1408;
-  background: linear-gradient(180deg, #ffc66b 0%, #e8821f 100%);
+.lobby__gear {
+  right: 4.5rem;
 }

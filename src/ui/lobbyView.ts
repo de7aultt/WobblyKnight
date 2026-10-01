@@ -1,22 +1,25 @@
 import './lobbyView.css';
 import { unlockAudio } from '../core/audio';
-import { loadMuted, saveMuted } from '../core/audioSettings';
 import type { GameEventBus } from '../core/events';
 import { formatDuration, type HighScores } from '../core/highScores';
 import type { MetaProgression } from '../core/metaProgression';
-import { LOCALE_OPTIONS, getLocale, setLocale, t } from '../i18n';
+import type { SettingsStore } from '../core/settings';
+import { t } from '../i18n';
 import { bindLocalized } from './localized';
+import { openSettingsModal } from './settingsModal';
 import { openShopView } from './shopView';
 
 const BANK_ICON = '🍺';
 const SOUND_ON_ICON = '🔊';
 const SOUND_OFF_ICON = '🔇';
+const GEAR_ICON = '⚙';
 
 export interface LobbyOptions {
   root: HTMLElement;
   events: GameEventBus;
   meta: MetaProgression;
   highScores: HighScores;
+  settings: SettingsStore;
   onEnterBrawl: () => void;
 }
 
@@ -41,7 +44,7 @@ function createButton(className: string, text = ''): HTMLButtonElement {
 }
 
 export function mountLobby(options: LobbyOptions): LobbyHandle {
-  const { root, events, meta, highScores, onEnterBrawl } = options;
+  const { root, events, meta, highScores, settings, onEnterBrawl } = options;
   const overlay = createElement('div', 'lobby interactive');
   const title = createElement('h1', 'lobby__title');
   const tagline = createElement('p', 'lobby__tagline');
@@ -53,17 +56,11 @@ export function mountLobby(options: LobbyOptions): LobbyHandle {
 
   const enterButton = createButton('lobby__button lobby__button--primary');
   const shopButton = createButton('lobby__button lobby__button--secondary');
-  const muteButton = createButton('lobby__mute');
-  const languageBar = createElement('div', 'lobby__languages');
-  const languageButtons = LOCALE_OPTIONS.map((option) => {
-    const button = createButton('lobby__lang', `${option.flag} ${option.code}`);
-    button.addEventListener('click', () => setLocale(option.id));
-    languageBar.append(button);
-    return { id: option.id, button };
-  });
-  let muted = loadMuted();
+  const muteButton = createButton('lobby__icon-button lobby__mute');
+  const gearButton = createButton('lobby__icon-button lobby__gear', GEAR_ICON);
 
   function renderMute(): void {
+    const muted = settings.snapshot().muted;
     muteButton.textContent = muted ? SOUND_OFF_ICON : SOUND_ON_ICON;
     muteButton.title = muted ? t('lobby.unmute') : t('lobby.mute');
     muteButton.setAttribute('aria-label', muteButton.title);
@@ -82,8 +79,8 @@ export function mountLobby(options: LobbyOptions): LobbyHandle {
     tagline.textContent = t('game.tagline');
     enterButton.textContent = t('lobby.enterBrawl');
     shopButton.textContent = t('lobby.shop');
-    languageBar.title = t('lobby.language');
-    languageButtons.forEach(({ id, button }) => button.classList.toggle('lobby__lang--active', id === getLocale()));
+    gearButton.title = t('lobby.settings');
+    gearButton.setAttribute('aria-label', gearButton.title);
     renderMute();
     renderRecords();
   }
@@ -109,16 +106,19 @@ export function mountLobby(options: LobbyOptions): LobbyHandle {
     openShopView({ root, events, meta, onBack: show });
   });
 
-  muteButton.addEventListener('click', () => {
+  gearButton.addEventListener('click', () => {
     void unlockAudio();
-    muted = !muted;
-    saveMuted(muted);
-    events.emit('MUTE_CHANGED', { muted });
-    renderMute();
+    hide();
+    openSettingsModal({ root, events, settings, onClose: show });
   });
 
-  overlay.append(languageBar, muteButton, title, tagline, bank, records, enterButton, shopButton);
+  muteButton.addEventListener('click', () => {
+    void unlockAudio();
+    settings.toggleMuted();
+  });
+
+  overlay.append(gearButton, muteButton, title, tagline, bank, records, enterButton, shopButton);
   bindLocalized(events, renderTexts);
-  events.emit('MUTE_CHANGED', { muted });
+  events.on('SETTINGS_CHANGED', renderMute);
   return { show, hide };
 }

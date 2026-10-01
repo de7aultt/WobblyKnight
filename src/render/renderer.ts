@@ -1,9 +1,13 @@
 import * as THREE from 'three';
 
-const MAX_PIXEL_RATIO = 2;
+let maxPixelRatio = 2;
 
-export function createRenderer(canvas: HTMLCanvasElement): THREE.WebGLRenderer {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+export function setMaxPixelRatio(ratio: number): void {
+  maxPixelRatio = ratio;
+}
+
+export function createRenderer(canvas: HTMLCanvasElement, antialias: boolean): THREE.WebGLRenderer {
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias });
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -14,6 +18,6 @@ export function createRenderer(canvas: HTMLCanvasElement): THREE.WebGLRenderer {
 }
 
 export function resizeRenderer(renderer: THREE.WebGLRenderer, width: number, height: number): void {
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
   renderer.setSize(width, height, false);
 }

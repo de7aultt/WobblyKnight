@@ -7,10 +7,12 @@ const CLANG_PARTIALS: readonly number[] = [180, 270, 410, 655];
 export class SoundFx {
   private synth: SynthContext | null = null;
   private muted = false;
+  private volume = 1;
 
-  setMuted(muted: boolean): void {
+  setAudio(muted: boolean, volume: number): void {
     this.muted = muted;
-    if (this.synth) this.synth.master.gain.value = muted ? 0 : MASTER_VOLUME;
+    this.volume = volume;
+    if (this.synth) this.synth.master.gain.value = this.outputGain();
   }
 
   playHit(heavy: boolean): void {
@@ -64,12 +66,16 @@ export class SoundFx {
     playNoise(synth, { filter: 'highpass', from: 3000, to: 1200, duration: 0.12, gain: 0.22 });
   }
 
+  private outputGain(): number {
+    return this.muted ? 0 : MASTER_VOLUME * this.volume;
+  }
+
   private resolve(): SynthContext | null {
     const ctx = getAudioContext();
     if (!ctx || ctx.state !== 'running') return null;
     if (!this.synth || this.synth.ctx !== ctx) {
       this.synth = createSynthContext(ctx);
-      this.synth.master.gain.value = this.muted ? 0 : MASTER_VOLUME;
+      this.synth.master.gain.value = this.outputGain();
     }
     return this.synth;
   }

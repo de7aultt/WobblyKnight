@@ -11,6 +11,7 @@ import type { PerkId } from './core/perks';
 import { PlayerStats } from './core/playerStats';
 import { Progression } from './core/progression';
 import { RunStats } from './core/runStats';
+import { SettingsStore } from './core/settings';
 import { wireSoundEvents } from './core/soundEvents';
 import { SoundFx } from './core/soundFx';
 import { AleMugField } from './entities/aleMug';
@@ -18,9 +19,10 @@ import { Player } from './entities/player';
 import { Spawner } from './entities/spawner';
 import { createRunLifecycle } from './game/runLifecycle';
 import { Combat } from './physics/combat';
-import { ContactTracker } from './physics/knightDamage';
+import { CONTACT_WINDUP_SECONDS, ContactTracker } from './physics/knightDamage';
 import { createArena } from './render/arena';
 import { createCamera, createCameraFollow, resizeCamera } from './render/camera';
+import { applyGraphicsQuality } from './render/graphicsQuality';
 import { ImpactSparks } from './render/impactSparks';
 import { createLights } from './render/lights';
 import { createRenderer, resizeRenderer } from './render/renderer';
@@ -50,7 +52,8 @@ function bootstrap(): void {
   const canvas = requireElement<HTMLCanvasElement>('canvas-layer');
   const uiRoot = requireElement<HTMLDivElement>('ui-root');
 
-  const renderer = createRenderer(canvas);
+  const settings = new SettingsStore(events);
+  const renderer = createRenderer(canvas, settings.snapshot().quality === 'high');
   const camera = createCamera(window.innerWidth / window.innerHeight);
   const cameraFollow = createCameraFollow(camera);
   const scene = new THREE.Scene();
@@ -111,7 +114,13 @@ function bootstrap(): void {
 
   function applyContactDamage(deltaSeconds: number): void {
     const blocked = player.isDashing || health.isProtected;
-    const attacker = contacts.update(deltaSeconds, spawner.enemies, player.position, blocked);
+    const attacker = contacts.update(
+      deltaSeconds,
+      spawner.enemies,
+      player.position,
+      blocked,
+      CONTACT_WINDUP_SECONDS * stats.contactWindupMultiplier
+    );
     if (!attacker || !health.takeDamage(CONTACT_DAMAGE)) return;
     contacts.reset();
     const deltaX = player.position.x - attacker.position.x;
@@ -137,6 +146,7 @@ function bootstrap(): void {
     if (health.takeDamage(BOSS_DAMAGE)) player.knockback(dirX, dirZ, BOSS_KNOCKBACK_SPEED);
   });
   events.on('BOSS_DEFEATED', ({ x, z }) => explodeBoss(x, z));
+  events.on('SETTINGS_CHANGED', ({ quality }) => applyGraphicsQuality({ renderer, lights, scene }, quality));
   events.on('RESIZE', ({ width, height }) => {
     resizeRenderer(renderer, width, height);
     resizeCamera(camera, width, height);
@@ -148,7 +158,7 @@ function bootstrap(): void {
   mountHud(uiRoot, events, progression.snapshot());
   mountBossHud(uiRoot, events);
   mountUpgradeModal({ root: uiRoot, events, loop, stats, onPerkChosen: handlePerkChosen });
-  const lobby = mountLobby({ root: uiRoot, events, meta, highScores, onEnterBrawl: lifecycle.start });
+  const lobby = mountLobby({ root: uiRoot, events, meta, highScores, settings, onEnterBrawl: lifecycle.start });
   mountGameOverController({
     root: uiRoot,
     events,
@@ -162,6 +172,7 @@ function bootstrap(): void {
     onReturnToTavern: () => {
       lifecycle.returnToTavern();
       lobby.show();
+  settings.announce();
     }
   });
   lobby.show();

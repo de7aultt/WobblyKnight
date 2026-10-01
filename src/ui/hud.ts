@@ -1,6 +1,7 @@
 import './hud.css';
 import type { GameEventBus, ProgressSnapshot } from '../core/events';
 import { t } from '../i18n';
+import { mountDashIndicator } from './dashIndicator';
 import { mountHearts } from './hearts';
 import { bindLocalized } from './localized';
 import { mountPerkTray } from './perkTray';
@@ -30,6 +31,7 @@ export function mountHud(root: HTMLElement, events: GameEventBus, initial: Progr
   root.append(hud);
   mountPerkTray(root, events);
   mountHearts(root, events);
+  mountDashIndicator(root, events);
 
   let latest = initial;
 
