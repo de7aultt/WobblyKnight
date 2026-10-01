@@ -1,7 +1,7 @@
 import type * as THREE from 'three';
 import type { Enemy } from '../entities/enemy';
 
-export const CONTACT_WINDUP_SECONDS = 0.7;
+export const CONTACT_WINDUP_SECONDS = 0.4;
 
 const CONTACT_REACH = 1.3;
 

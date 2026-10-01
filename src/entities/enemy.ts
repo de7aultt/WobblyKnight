@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { clampToArena } from '../physics/arenaBounds';
+import { createBrain, createSteer, type BrainInput, type EnemyBrain, type EnemyContext } from './enemyBrain';
 import { createEnemyMesh, type EnemyRig } from './enemyMesh';
 import { ENEMY_TYPES, type EnemyKind, type EnemyType } from './enemyTypes';
+import { SHIELD_BREAK_SPEED, SHIELD_RECOIL_SPEED, isShieldFacing } from './shieldRules';
 
 export type EnemyState = 'CHASING' | 'STAGGERED' | 'FLYING' | 'DEAD';
 
@@ -10,7 +12,6 @@ const STAGGER_SECONDS = 0.25;
 const GRAVITY = 26;
 const KNOCK_DECAY = 6;
 const TURN_RATE = 10;
-const KNIGHT_CONTACT_DISTANCE = 1.1;
 const MAX_FLIGHT_SECONDS = 2.5;
 const MIN_LANDING_FLIGHT_SECONDS = 0.15;
 const MAX_BOUNCES = 2;
@@ -37,16 +38,33 @@ export class Enemy {
   private walkPhase = Math.random() * Math.PI * 2;
   private yaw = 0;
   private readonly tumble = new THREE.Vector2();
+  private readonly brain: EnemyBrain;
+  private readonly steer = createSteer();
+  private readonly brainInput: BrainInput;
 
-  constructor(kind: EnemyKind, x: number, z: number) {
+  constructor(kind: EnemyKind, x: number, z: number, context: EnemyContext) {
     this.type = ENEMY_TYPES[kind];
+    this.brain = createBrain(this.type, context);
     this.health = this.type.health;
     this.rig = createEnemyMesh(this.type);
     this.rig.root.position.set(x, 0, z);
+    this.brainInput = { deltaSeconds: 0, position: this.rig.root.position, target: new THREE.Vector3() };
   }
 
   get position(): THREE.Vector3 {
     return this.rig.root.position;
+  }
+
+  blockHit(origin: THREE.Vector3, speed: number): boolean {
+    if (!this.type.hasShield || speed >= SHIELD_BREAK_SPEED) return false;
+    const deltaX = origin.x - this.position.x;
+    const deltaZ = origin.z - this.position.z;
+    if (!isShieldFacing(this.yaw, deltaX, deltaZ)) return false;
+    const length = Math.hypot(deltaX, deltaZ) || 1;
+    this.hitCooldown = HIT_COOLDOWN_SECONDS;
+    this.knockVelocity.x -= (deltaX / length) * SHIELD_RECOIL_SPEED;
+    this.knockVelocity.z -= (deltaZ / length) * SHIELD_RECOIL_SPEED;
+    return true;
   }
 
   get isCollidable(): boolean {
@@ -113,26 +131,33 @@ export class Enemy {
   }
 
   private updateChasing(deltaSeconds: number, target: THREE.Vector3): void {
-    const deltaX = target.x - this.position.x;
-    const deltaZ = target.z - this.position.z;
-    const distance = Math.hypot(deltaX, deltaZ);
-    const hasTarget = distance > 1e-3;
-    const arrived = distance < this.type.radius + KNIGHT_CONTACT_DISTANCE;
-    const approachSpeed = hasTarget && !arrived && !this.isStunned ? this.type.speed : 0;
+    this.brainInput.deltaSeconds = deltaSeconds;
+    this.brainInput.target.copy(target);
+    const steer = this.steer;
+    if (this.isStunned) {
+      steer.moveX = 0;
+      steer.moveZ = 0;
+      steer.faceX = 0;
+      steer.faceZ = 0;
+      steer.lift = 0;
+      steer.moving = false;
+    } else {
+      this.brain.steer(this.brainInput, steer);
+    }
 
-    if (hasTarget) this.faceDirection(deltaX, deltaZ, deltaSeconds);
-    const moveX = hasTarget ? (deltaX / distance) * approachSpeed : 0;
-    const moveZ = hasTarget ? (deltaZ / distance) * approachSpeed : 0;
-    this.advance(deltaSeconds, moveX + this.separation.x, moveZ + this.separation.z);
+    if (steer.faceX !== 0 || steer.faceZ !== 0) this.faceDirection(steer.faceX, steer.faceZ, deltaSeconds);
+    this.advance(deltaSeconds, steer.moveX + this.separation.x, steer.moveZ + this.separation.z);
+    this.position.y = steer.lift;
 
-    this.walkPhase += this.type.walkRate * deltaSeconds * (approachSpeed > 0 ? 1 : 0.25);
-    this.animateWalk(approachSpeed > 0 ? 1 : 0.3, CHASE_LEAN);
+    this.walkPhase += this.type.walkRate * deltaSeconds * (steer.moving ? 1 : 0.25);
+    this.animateWalk(steer.moving ? 1 : 0.3, CHASE_LEAN + this.type.hunch);
     if (this.isStunned) this.animateStun();
   }
 
   private updateStaggered(deltaSeconds: number): void {
     this.staggerTimer -= deltaSeconds;
     this.advance(deltaSeconds, 0, 0);
+    this.position.y = 0;
     this.animateWalk(0, STAGGER_LEAN);
     if (this.staggerTimer <= 0) this.state = 'CHASING';
   }

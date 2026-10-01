@@ -65,3 +65,28 @@
     font-size: 1.6rem;
   }
 }
+
+.heart--restored {
+  animation: heart-restore 0.8s ease-out;
+}
+
+@keyframes heart-restore {
+  0% {
+    transform: scale(0.6);
+    text-shadow: 0 0 4px rgba(120, 255, 160, 0.4);
+  }
+
+  35% {
+    transform: scale(1.5);
+    color: #ff7a88;
+    text-shadow: 0 0 22px rgba(120, 255, 160, 0.95);
+  }
+
+  70% {
+    transform: scale(0.95);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}

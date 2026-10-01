@@ -120,5 +120,17 @@ export const pl: Record<TranslationKey, string> = {
   'perk.spikeBoots.title': 'Kolczaste buty',
   'perk.spikeBoots.desc': 'Wrogowie napierający na ciebie dostają kopniaka i obrażenia.',
   'perk.aleMagnet.title': 'Magnes na piwo',
-  'perk.aleMagnet.desc': 'Zasięg i prędkość przyciągania +100%.'
+  'perk.aleMagnet.desc': 'Zasięg i prędkość przyciągania +100%.',
+  'perk.chainLightning.title': 'Błyskawica łańcuchowa',
+  'perk.chainLightning.desc': 'Uderzenia kuli wyładowują błyskawicę w maks. 2 pobliskich wrogów za 1 obrażenie.',
+  'perk.vampiricAle.title': 'Wampirzy Ale',
+  'perk.vampiricAle.desc': '6% szans za rangę na przywrócenie 1 serca po pokonaniu wroga.',
+  'perk.momentumCleave.title': 'Pęd cięcia',
+  'perk.momentumCleave.desc': 'Każde kolejne trafienie daje +4% szybkości zamachu, maks. +24%.',
+  'perk.spikedTrail.title': 'Kolczasty ślad',
+  'perk.spikedTrail.desc': 'Bieg zostawia świecące kolce na 2,5 s, które ranią wrogów.',
+  'enemy.unlocked': 'Nowy wróg',
+  'enemy.bomber.name': 'Pijany Bombardier',
+  'enemy.shieldGuard.name': 'Opancerzony Tarczownik',
+  'enemy.ghoul.name': 'Wampiryczny Ghul'
 };

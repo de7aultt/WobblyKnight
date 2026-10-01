@@ -19,6 +19,7 @@ import { AleMugField } from './entities/aleMug';
 import { Player } from './entities/player';
 import { STOMP_RADIUS, STOMP_STUN_SECONDS } from './entities/heroSkill';
 import { Spawner } from './entities/spawner';
+import { SpikeTrail } from './entities/spikeTrail';
 import { createRunLifecycle } from './game/runLifecycle';
 import { Combat } from './physics/combat';
 import { CONTACT_WINDUP_SECONDS, ContactTracker } from './physics/knightDamage';
@@ -30,6 +31,7 @@ import { createLights } from './render/lights';
 import { createRenderer, resizeRenderer } from './render/renderer';
 import { showMockAdOverlay } from './ui/adOverlay';
 import { mountBossHud } from './ui/bossHud';
+import { mountEnemyToast } from './ui/enemyToast';
 import { mountGameOverController } from './ui/gameOverController';
 import { mountHud } from './ui/hud';
 import { mountLobby } from './ui/lobbyView';
@@ -37,6 +39,7 @@ import { mountUpgradeModal } from './ui/upgradeModal';
 
 const BOSS_EXPLOSION_BURSTS = 6;
 const CONTACT_DAMAGE = 1;
+const BOMB_SPARK_INTENSITY = 1.4;
 const CONTACT_KNOCKBACK_SPEED = 9;
 const DAMAGE_FLASH_RATE = 14;
 const STOMP_SPARK_COUNT = 8;
@@ -77,6 +80,7 @@ function bootstrap(): void {
   const combat = new Combat(sparks, stats, (heavy) => events.emit('ENEMY_HIT', { heavy }));
   const aleMugs = new AleMugField(scene);
   const spawner = new Spawner(scene, events);
+  const spikeTrail = new SpikeTrail(scene, sparks);
   const loop = new GameLoop();
   const lifecycle = createRunLifecycle({
     events,
@@ -114,6 +118,10 @@ function bootstrap(): void {
     }
   }
 
+  function applyKnightHit({ dirX, dirZ, damage, knockback }: GameEvents['HAZARD_HIT']): void {
+    if (health.takeDamage(damage)) player.knockback(dirX, dirZ, knockback);
+  }
+
   function applyContactDamage(deltaSeconds: number): void {
     const blocked = player.isShielded || health.isProtected;
     const attacker = contacts.update(
@@ -142,10 +150,19 @@ function bootstrap(): void {
   events.on('LEVEL_UP', () => input.setEnabled(false));
   events.on('ENEMY_DEFEATED', ({ x, z, smashed }) => {
     aleMugs.spawn(x, z);
-    if (smashed) runStats.addEnemy();
+    if (!smashed) return;
+    runStats.addEnemy();
+    if (Math.random() < stats.vampiricChance) health.heal(1);
   });
-  events.on('BOSS_SLAM', ({ dirX, dirZ, damage, knockback }) => {
-    if (health.takeDamage(damage)) player.knockback(dirX, dirZ, knockback);
+  events.on('ENEMY_HIT', () => {
+    if (stats.momentumLevel > 0) stats.momentum.registerHit();
+  });
+  events.on('RUN_RESET', () => spikeTrail.clear());
+  events.on('BOSS_SLAM', applyKnightHit);
+  events.on('HAZARD_HIT', applyKnightHit);
+  events.on('BOMB_EXPLODED', ({ x, z }) => {
+    explosionPoint.set(x, 0.6, z);
+    sparks.burst(explosionPoint, BOMB_SPARK_INTENSITY);
   });
   events.on('BOSS_BOTTLE_SHATTER', ({ x, z }) => {
     explosionPoint.set(x, 0.5, z);
@@ -173,6 +190,7 @@ function bootstrap(): void {
 
   mountHud(uiRoot, events, progression.snapshot());
   mountBossHud(uiRoot, events);
+  mountEnemyToast(uiRoot, events);
   mountUpgradeModal({ root: uiRoot, events, loop, stats, onPerkChosen: handlePerkChosen });
   const lobby = mountLobby({ root: uiRoot, events, meta, highScores, settings, armory, onEnterBrawl: lifecycle.start });
   mountGameOverController({
@@ -197,6 +215,7 @@ function bootstrap(): void {
   loop.onTick((delta, elapsed) => {
     events.emit('TICK', { delta, elapsed });
     runStats.tick(delta);
+    stats.momentum.update(delta);
     health.update(delta);
     player.update(delta);
     if (player.isSkillActive && !wasDashing) events.emit('DASH_STARTED');
@@ -205,6 +224,7 @@ function bootstrap(): void {
     player.setDamageFlash(health.isInvulnerable && !health.isKnockedOut ? Math.floor(elapsed * DAMAGE_FLASH_RATE) % 2 : 0);
 
     spawner.update(delta, player.position, player.isShielded || health.isProtected);
+    spikeTrail.update(delta, player.position, spawner.enemies, stats.trailLevel > 0);
     applyContactDamage(delta);
     if (spawner.boss?.computeKnightPush(player.position, bossPush)) player.nudge(bossPush.x, bossPush.z);
     combat.update(delta, player.chains, spawner.targets, player.position, player.isDashing);

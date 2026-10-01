@@ -1,0 +1,50 @@
+.enemy-toast {
+  position: absolute;
+  top: 9.5rem;
+  left: 50%;
+  padding: 0.5rem 1.4rem;
+  text-align: center;
+  pointer-events: none;
+  background: rgba(17, 13, 24, 0.82);
+  border: 2px solid #6b2d0f;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  animation: enemy-toast-slide 3.2s ease-out forwards;
+}
+
+.enemy-toast__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #ffb347;
+}
+
+.enemy-toast__name {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #fff3e0;
+  text-shadow: 0 2px 0 #4a1d08;
+}
+
+@keyframes enemy-toast-slide {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -1rem);
+  }
+
+  12% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  85% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 0);
+  }
+}

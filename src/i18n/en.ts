@@ -118,7 +118,19 @@ export const en = {
   'perk.spikeBoots.title': 'Spike Boots',
   'perk.spikeBoots.desc': 'Enemies crowding your body get kicked for damage.',
   'perk.aleMagnet.title': 'Ale Magnet',
-  'perk.aleMagnet.desc': 'Pickup range and pull speed +100%.'
+  'perk.aleMagnet.desc': 'Pickup range and pull speed +100%.',
+  'perk.chainLightning.title': 'Chain Lightning',
+  'perk.chainLightning.desc': 'Flail hits arc lightning into up to 2 nearby enemies for 1 damage.',
+  'perk.vampiricAle.title': 'Vampiric Ale',
+  'perk.vampiricAle.desc': '6% chance per rank to restore 1 Heart when you defeat an enemy.',
+  'perk.momentumCleave.title': 'Cleave Momentum',
+  'perk.momentumCleave.desc': 'Each consecutive hit adds +4% swing speed, up to +24%.',
+  'perk.spikedTrail.title': 'Spiked Trail',
+  'perk.spikedTrail.desc': 'Running drops glowing caltrops for 2.5s that hurt enemies who step on them.',
+  'enemy.unlocked': 'New foe',
+  'enemy.bomber.name': 'Drunken Bomber',
+  'enemy.shieldGuard.name': 'Armored Shield Guard',
+  'enemy.ghoul.name': 'Vampire Ghoul'
 } as const;
 
 export type TranslationKey = keyof typeof en;

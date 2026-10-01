@@ -120,5 +120,17 @@ export const ru: Record<TranslationKey, string> = {
   'perk.spikeBoots.title': 'Шипастые сапоги',
   'perk.spikeBoots.desc': 'Враги, лезущие вплотную, получают пинок и урон.',
   'perk.aleMagnet.title': 'Магнит эля',
-  'perk.aleMagnet.desc': 'Радиус и скорость притяжения +100%.'
+  'perk.aleMagnet.desc': 'Радиус и скорость притяжения +100%.',
+  'perk.chainLightning.title': 'Цепная молния',
+  'perk.chainLightning.desc': 'Удары цепа бьют молнией до 2 ближних врагов на 1 урон.',
+  'perk.vampiricAle.title': 'Вампирский эль',
+  'perk.vampiricAle.desc': '6% шанс за ранг восстановить 1 сердце при убийстве врага.',
+  'perk.momentumCleave.title': 'Импульс рубки',
+  'perk.momentumCleave.desc': 'Каждый подряд удар даёт +4% к скорости размаха, до +24%.',
+  'perk.spikedTrail.title': 'Шипастый след',
+  'perk.spikedTrail.desc': 'Бег оставляет светящиеся шипы на 2,5 с, ранящие наступивших врагов.',
+  'enemy.unlocked': 'Новый враг',
+  'enemy.bomber.name': 'Пьяный бомбардир',
+  'enemy.shieldGuard.name': 'Бронированный щитоносец',
+  'enemy.ghoul.name': 'Вампир-гуль'
 };

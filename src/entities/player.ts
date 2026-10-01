@@ -231,7 +231,7 @@ export class Player {
     if (this.moveDirection.lengthSq() === 0) return 0;
     const targetYaw = Math.atan2(this.moveDirection.x, this.moveDirection.z);
     const difference = shortestAngle(this.yaw, targetYaw);
-    const maxTurn = TURN_SPEED * deltaSeconds;
+    const maxTurn = TURN_SPEED * this.stats.spinMultiplier * deltaSeconds;
     const turn = Math.min(Math.max(difference, -maxTurn), maxTurn);
     this.yaw += turn;
     return turn / deltaSeconds;

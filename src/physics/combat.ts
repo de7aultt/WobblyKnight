@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { PlayerStats } from '../core/playerStats';
 import type { CombatTarget } from '../entities/combatTarget';
 import type { ImpactSparks } from '../render/impactSparks';
+import { ChainLightning } from './chainLightning';
 import type { FlailChain } from './flailChain';
 
 export interface CombatSettings {
@@ -53,13 +54,17 @@ export class Combat {
   private readonly impulse = new THREE.Vector3();
   private readonly contactPoint = new THREE.Vector3();
   private readonly enemyCenter = new THREE.Vector3();
+  private readonly lightning: ChainLightning;
+  private targets: readonly CombatTarget[] = [];
 
   constructor(
     private readonly sparks: ImpactSparks,
     private readonly stats: PlayerStats,
     private readonly onHit: (heavy: boolean) => void,
     private readonly settings: CombatSettings = DEFAULT_COMBAT_SETTINGS
-  ) {}
+  ) {
+    this.lightning = new ChainLightning(sparks);
+  }
 
   update(
     deltaSeconds: number,
@@ -68,6 +73,7 @@ export class Combat {
     knightPosition: THREE.Vector3,
     isDashing: boolean
   ): void {
+    this.targets = enemies;
     for (const enemy of enemies) {
       if (!enemy.isCollidable) continue;
       this.shoveFromBody(deltaSeconds, enemy, knightPosition, isDashing);
@@ -99,7 +105,7 @@ export class Combat {
     const tipPosition = chain.tipPosition;
     if (!enemy.isCollidable || !enemy.overlapsSphere(tipPosition, chain.tipRadius)) return;
     chain.getTipVelocity(this.tipVelocity);
-    const speed = chain.tipSpeed;
+    const speed = chain.tipSpeed * this.stats.spinMultiplier;
     this.resolveTipDirection(tipPosition, enemy);
     if (speed < this.settings.minImpactSpeed) {
       enemy.shove(this.direction.x, this.direction.z, this.settings.shoveStrength * deltaSeconds);
@@ -114,7 +120,7 @@ export class Combat {
   private resolveLinks(chain: FlailChain, enemy: CombatTarget, knightPosition: THREE.Vector3): void {
     for (const link of chain.links) {
       if (!enemy.overlapsSphere(link.position, this.settings.linkHitRadius)) continue;
-      const speed = chain.getLinkVelocity(link, this.linkVelocity).length();
+      const speed = chain.getLinkVelocity(link, this.linkVelocity).length() * this.stats.spinMultiplier;
       if (speed < this.settings.minLinkImpactSpeed) continue;
       this.setOutwardDirection(enemy, knightPosition);
       const multiplier = this.stats.impactMultiplier;
@@ -144,6 +150,12 @@ export class Combat {
       (speed * knockbackScale * force * this.stats.knockbackBuff) / enemy.type.mass,
       maxHorizontalImpulse
     );
+    if (enemy.blockHit?.(origin, speed)) {
+      this.enemyCenter.copy(enemy.position);
+      this.enemyCenter.y += enemy.type.height * 0.5;
+      this.sparks.burst(this.enemyCenter, 1.2);
+      return;
+    }
     const lethal = damage >= enemy.health;
     const lift = lethal ? liftBase + speed * liftPerSpeed : 0;
     this.impulse.set(this.direction.x * horizontal, lift, this.direction.z * horizontal);
@@ -154,5 +166,6 @@ export class Combat {
     this.sparks.burst(this.contactPoint, speed / this.settings.sparkSpeedReference);
     this.onHit(speed >= this.settings.heavyImpactSpeed);
     enemy.receiveHit(damage, this.impulse);
+    if (this.stats.lightningTargets > 0) this.lightning.discharge(enemy, this.targets, this.stats.lightningTargets);
   }
 }

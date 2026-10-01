@@ -15,5 +15,6 @@ export interface CombatTarget {
   overlapsSphere(center: THREE.Vector3, radius: number): boolean;
   shove(directionX: number, directionZ: number, strength: number): void;
   stagger(seconds: number): void;
+  blockHit?(origin: THREE.Vector3, speed: number): boolean;
   receiveHit(damage: number, impulse: THREE.Vector3): void;
 }

@@ -5,16 +5,16 @@ import { ARENA_HALF } from '../render/arenaLayout';
 import type { Boss } from './boss';
 import { BossDirector } from './bossDirector';
 import type { CombatTarget } from './combatTarget';
+import { BombField } from './bombField';
 import { Enemy } from './enemy';
 import type { EnemyKind } from './enemyTypes';
+import { pendingUnlocks, pickEnemyKind } from './spawnTable';
 
 const MAX_ACTIVE_ENEMIES = 36;
 const INITIAL_GOBLINS = 4;
 const SLOWEST_INTERVAL_SECONDS = 1.1;
 const FASTEST_INTERVAL_SECONDS = 0.35;
 const RAMP_SECONDS = 120;
-const BRIGAND_RAMP_SECONDS = 60;
-const MAX_BRIGAND_CHANCE = 0.4;
 const SPAWN_WALL_INSET = 1.4;
 const SPAWN_CORNER_MARGIN = 3.5;
 const MIN_PLAYER_DISTANCE = 8;
@@ -25,6 +25,8 @@ export class Spawner {
   readonly enemies: Enemy[] = [];
   readonly targets: CombatTarget[] = [];
   private readonly director: BossDirector;
+  private readonly bombs: BombField;
+  private readonly announced = new Set<EnemyKind>();
   private active = false;
   private elapsed = 0;
   private spawnTimer = 0;
@@ -37,8 +39,10 @@ export class Spawner {
     private readonly events: GameEventBus
   ) {
     this.director = new BossDirector(scene, events);
+    this.bombs = new BombField(scene, events);
     events.on('LEVEL_UP', ({ level }) => {
       this.reachedLevel = level;
+      this.announceUnlocks(level);
     });
   }
 
@@ -57,6 +61,8 @@ export class Spawner {
     this.targets.length = 0;
     this.clearedEnemies.clear();
     this.director.reset();
+    this.bombs.clear();
+    this.announced.clear();
     this.active = false;
     this.elapsed = 0;
     this.spawnTimer = 0;
@@ -94,6 +100,7 @@ export class Spawner {
     }
 
     this.updateEnemies(deltaSeconds, playerPosition);
+    this.bombs.update(deltaSeconds, playerPosition, knightInvulnerable);
     if (this.director.update(deltaSeconds, playerPosition, knightInvulnerable)) this.spawnTimer = SLOWEST_INTERVAL_SECONDS;
     this.rebuildTargets();
   }
@@ -132,19 +139,21 @@ export class Spawner {
       this.spawnTimer = 0;
       return;
     }
-    this.spawn(this.pickKind(), playerPosition);
+    this.spawn(pickEnemyKind(this.reachedLevel, this.elapsed), playerPosition);
     const progress = Math.min(this.elapsed / RAMP_SECONDS, 1);
     this.spawnTimer = SLOWEST_INTERVAL_SECONDS + (FASTEST_INTERVAL_SECONDS - SLOWEST_INTERVAL_SECONDS) * progress;
   }
 
-  private pickKind(): EnemyKind {
-    const brigandChance = Math.min(this.elapsed / BRIGAND_RAMP_SECONDS, 1) * MAX_BRIGAND_CHANCE;
-    return Math.random() < brigandChance ? 'brigand' : 'goblin';
+  private announceUnlocks(level: number): void {
+    for (const kind of pendingUnlocks(level, this.announced)) {
+      this.announced.add(kind);
+      this.events.emit('ENEMY_UNLOCKED', { kind });
+    }
   }
 
   private spawn(kind: EnemyKind, playerPosition: THREE.Vector3): void {
     this.pickSpawnPoint(playerPosition);
-    const enemy = new Enemy(kind, this.spawnPoint.x, this.spawnPoint.y);
+    const enemy = new Enemy(kind, this.spawnPoint.x, this.spawnPoint.y, { bombs: this.bombs });
     this.scene.add(enemy.rig.root);
     this.enemies.push(enemy);
   }

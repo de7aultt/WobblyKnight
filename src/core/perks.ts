@@ -6,7 +6,11 @@ export type PerkId =
   | 'double_morningstar'
   | 'iron_armor'
   | 'spike_boots'
-  | 'ale_magnet';
+  | 'ale_magnet'
+  | 'chain_lightning'
+  | 'vampiric_ale'
+  | 'momentum_cleave'
+  | 'spiked_trail';
 
 export type PerkTag = 'offense' | 'mobility' | 'utility' | 'defense';
 
@@ -67,6 +71,38 @@ export const PERKS: readonly PerkDefinition[] = [
     tagKey: 'perk.tag.utility',
     tag: 'utility',
     icon: '🧲'
+  },
+  {
+    id: 'chain_lightning',
+    titleKey: 'perk.chainLightning.title',
+    descKey: 'perk.chainLightning.desc',
+    tagKey: 'perk.tag.offense',
+    tag: 'offense',
+    icon: '⚡'
+  },
+  {
+    id: 'vampiric_ale',
+    titleKey: 'perk.vampiricAle.title',
+    descKey: 'perk.vampiricAle.desc',
+    tagKey: 'perk.tag.defense',
+    tag: 'defense',
+    icon: '🍷'
+  },
+  {
+    id: 'momentum_cleave',
+    titleKey: 'perk.momentumCleave.title',
+    descKey: 'perk.momentumCleave.desc',
+    tagKey: 'perk.tag.offense',
+    tag: 'offense',
+    icon: '🌀'
+  },
+  {
+    id: 'spiked_trail',
+    titleKey: 'perk.spikedTrail.title',
+    descKey: 'perk.spikedTrail.desc',
+    tagKey: 'perk.tag.mobility',
+    tag: 'mobility',
+    icon: '✴'
   }
 ];
 

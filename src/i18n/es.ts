@@ -120,5 +120,17 @@ export const es: Record<TranslationKey, string> = {
   'perk.spikeBoots.title': 'Botas de púas',
   'perk.spikeBoots.desc': 'Los enemigos pegados a ti reciben una patada y daño.',
   'perk.aleMagnet.title': 'Imán de cerveza',
-  'perk.aleMagnet.desc': 'Alcance y velocidad de atracción +100%.'
+  'perk.aleMagnet.desc': 'Alcance y velocidad de atracción +100%.',
+  'perk.chainLightning.title': 'Rayo en cadena',
+  'perk.chainLightning.desc': 'Los golpes del mangual lanzan un rayo a hasta 2 enemigos cercanos por 1 de daño.',
+  'perk.vampiricAle.title': 'Cerveza vampírica',
+  'perk.vampiricAle.desc': '6% de probabilidad por rango de recuperar 1 corazón al derrotar a un enemigo.',
+  'perk.momentumCleave.title': 'Impulso cortante',
+  'perk.momentumCleave.desc': 'Cada golpe consecutivo suma +4% de velocidad de giro, hasta +24%.',
+  'perk.spikedTrail.title': 'Rastro de púas',
+  'perk.spikedTrail.desc': 'Correr deja abrojos brillantes durante 2,5 s que dañan a los enemigos que los pisan.',
+  'enemy.unlocked': 'Nuevo enemigo',
+  'enemy.bomber.name': 'Bombardero Borracho',
+  'enemy.shieldGuard.name': 'Guardia Escudero Blindado',
+  'enemy.ghoul.name': 'Necrófago Vampiro'
 };

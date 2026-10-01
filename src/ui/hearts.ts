@@ -6,17 +6,17 @@ import { bindLocalized } from './localized';
 
 const HEART_GLYPH = '♥';
 
-function replayShake(heart: HTMLElement): void {
-  heart.classList.remove('heart--hit');
+function replayAnimation(heart: HTMLElement, className: string): void {
+  heart.classList.remove(className);
   void heart.offsetWidth;
-  heart.classList.add('heart--hit');
+  heart.classList.add(className);
 }
 
 function createHeart(): HTMLElement {
   const heart = document.createElement('span');
   heart.className = 'heart';
   heart.textContent = HEART_GLYPH;
-  heart.addEventListener('animationend', () => heart.classList.remove('heart--hit'));
+  heart.addEventListener('animationend', () => heart.classList.remove('heart--hit', 'heart--restored'));
   return heart;
 }
 
@@ -42,8 +42,12 @@ export function mountHearts(root: HTMLElement, events: GameEventBus): void {
     if (hearts.length !== max) rebuild(max);
     hearts.forEach((heart, index) => heart.classList.toggle('heart--empty', index >= current));
     if (damaged) {
-      for (let index = current; index < previous && index < hearts.length; index++) replayShake(hearts[index]);
+      for (let index = current; index < previous && index < hearts.length; index++) replayAnimation(hearts[index], 'heart--hit');
     }
     previous = current;
+  });
+  events.on('HEART_RESTORED', () => {
+    const restored = hearts[previous - 1];
+    if (restored) replayAnimation(restored, 'heart--restored');
   });
 }

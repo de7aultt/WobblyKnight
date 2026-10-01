@@ -1,4 +1,5 @@
 import type { Locale } from '../i18n';
+import type { SpecialEnemyKind } from '../entities/enemyTypes';
 import type { BossTier } from './bossTier';
 import type { ArmoryLoadout } from './armoryState';
 import type { PerkId } from './perks';
@@ -37,6 +38,10 @@ export interface GameEvents {
   BOSS_STUNNED: void;
   BOSS_SLAM: { dirX: number; dirZ: number; damage: number; knockback: number };
   BOSS_HEALTH: { ratio: number; current: number; max: number };
+  ENEMY_UNLOCKED: { kind: SpecialEnemyKind };
+  HEART_RESTORED: void;
+  HAZARD_HIT: { dirX: number; dirZ: number; damage: number; knockback: number };
+  BOMB_EXPLODED: { x: number; z: number };
   BOSS_BOTTLE_SHATTER: { x: number; z: number };
   BOSS_DEFEATED: { x: number; z: number; tier: BossTier; mugCount: number };
 }

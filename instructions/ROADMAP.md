@@ -156,7 +156,7 @@
 
 ---
 
-### [ ] Sprint 12: Enemy Horde Expansion & New Roguelite Perks
+### [x] Sprint 12: Enemy Horde Expansion & New Roguelite Perks
 - **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
 - **Scope:**
   - 3 new enemy archetypes unlocking after boss milestones:
@@ -233,5 +233,14 @@
 
 ---
 
-### [ ] QOL Batch (Accumulating 4-5 micro-tweaks before execution):
-1. Tune enemy contact attack windup delay: 0.7s -> 0.4s for snappier enemy bites.
+### [ ] QOL 7: ESC Pause Menu & Bottle Audio Balance
+- **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
+- **Scope:**
+  - ESC key opens Pause Menu during combat (freezes simulation via game loop).
+  - Pause Menu modal inside #ui-root:
+    * "RESUME" button (or press ESC again) to unpause.
+    * "SETTINGS" button to open Settings modal directly from pause.
+    * "RETREAT TO TAVERN" button: deposits all currently collected Ale Mugs into permanent bank, resets combat, and returns to Tavern Lobby.
+  - Reduce explosive ale bottle shatter sound volume by 3x (down to ~33% gain).
+  - Enemy contact windup delay tuned to 0.4s (completed in Sprint 12).
+- **Verification:** Pressing ESC freezes fight and opens pause menu with resume, settings, and retreat with banked loot.

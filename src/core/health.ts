@@ -53,6 +53,14 @@ export class Health {
     return true;
   }
 
+  heal(amount: number): boolean {
+    if (this.knockedOut || this.current >= this.maxHealth) return false;
+    this.current = Math.min(this.maxHealth, this.current + amount);
+    this.emitChange(false);
+    this.events.emit('HEART_RESTORED');
+    return true;
+  }
+
   healFull(): void {
     this.current = this.maxHealth;
     this.knockedOut = false;
