@@ -58,7 +58,7 @@
 
 ---
 
-### [ ] Sprint 5: Boss Wave & Procedural Sound FX
+### [x] Sprint 5: Boss Wave & Procedural Sound FX
 - **Recommended Model:** `Claude 3.5 Sonnet`
 - **Scope:**
   - Wave 5 Boss: **The Giant Butcher Boss** (huge size, heavy cleaver, telegraphs a telegraphed belly charge).
@@ -136,3 +136,12 @@
   - Add visual cooldown swipe/fill overlay on the Dash perk slot in the bottom HUD tray (filling/draining vertically from bottom to top).
   - Quick green flash animation on the slot when the cooldown finishes and the dash is ready again.
 - **Verification:** Using dash triggers a smooth 5-second swipe overlay on its HUD slot, followed by a crisp green ready flash.
+
+---
+
+### [x] QOL 5: Audio Polish & Tavern Impact Redesign
+- **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
+- **Scope:**
+  - Soften whoosh filter and raise activation threshold to avoid continuous scraping.
+  - Redesign enemy hit sound into a punchy physical bass thud and crunch.
+- **Verification:** Hit sounds feel punchy; walking is quiet.

@@ -1,4 +1,13 @@
 import * as THREE from 'three';
+import { clampToArena } from '../physics/arenaBounds';
+
+const LAUNCH_START_HEIGHT = 1.5;
+const LAUNCH_GRAVITY = 24;
+const MUG_RADIUS = 0.3;
+const BURST_MIN_SPEED = 3;
+const BURST_SPEED_RANGE = 5;
+const BURST_MIN_LIFT = 9;
+const BURST_LIFT_RANGE = 5;
 
 export const BASE_MAGNET_RADIUS = 3.2;
 export const COLLECT_RADIUS = 1.2;
@@ -45,10 +54,20 @@ export class AleMug {
   private age = Math.random() * Math.PI * 2;
   private lifetime = 0;
   private pullSpeed = 0;
+  private airVelocity: THREE.Vector3 | null = null;
 
   constructor(x: number, z: number) {
     this.mesh.position.set(x, BASE_HEIGHT, z);
     this.mesh.scale.setScalar(0.01);
+  }
+
+  get isAirborne(): boolean {
+    return this.airVelocity !== null;
+  }
+
+  launch(velocityX: number, velocityY: number, velocityZ: number): void {
+    this.airVelocity = new THREE.Vector3(velocityX, velocityY, velocityZ);
+    this.mesh.position.y = LAUNCH_START_HEIGHT;
   }
 
   get position(): THREE.Vector3 {
@@ -73,8 +92,21 @@ export class AleMug {
     this.lifetime += deltaSeconds;
     const pop = Math.min(this.lifetime / POP_SECONDS, 1);
     this.mesh.scale.setScalar((1 + Math.sin(pop * Math.PI) * 0.35 * pop) * pop);
-    this.mesh.position.y = BASE_HEIGHT + Math.sin(this.age * BOB_RATE) * BOB_AMPLITUDE;
     this.mesh.rotation.y += SPIN_RATE * deltaSeconds;
+    if (this.airVelocity) {
+      this.flyThroughAir(this.airVelocity, deltaSeconds);
+      return;
+    }
+    this.mesh.position.y = BASE_HEIGHT + Math.sin(this.age * BOB_RATE) * BOB_AMPLITUDE;
+  }
+
+  private flyThroughAir(velocity: THREE.Vector3, deltaSeconds: number): void {
+    velocity.y -= LAUNCH_GRAVITY * deltaSeconds;
+    this.mesh.position.addScaledVector(velocity, deltaSeconds);
+    clampToArena(this.mesh.position, MUG_RADIUS);
+    if (this.mesh.position.y > BASE_HEIGHT || velocity.y > 0) return;
+    this.mesh.position.y = BASE_HEIGHT;
+    this.airVelocity = null;
   }
 
   dispose(): void {
@@ -96,6 +128,15 @@ export class AleMugField {
     return mug;
   }
 
+  spawnBurst(x: number, z: number, count: number): void {
+    for (let index = 0; index < count; index++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = BURST_MIN_SPEED + Math.random() * BURST_SPEED_RANGE;
+      const mug = this.spawn(x, z);
+      mug.launch(Math.cos(angle) * speed, BURST_MIN_LIFT + Math.random() * BURST_LIFT_RANGE, Math.sin(angle) * speed);
+    }
+  }
+
   update(deltaSeconds: number, knightPosition: THREE.Vector3, magnetMultiplier: number, onCollect: () => void): void {
     const radius = BASE_MAGNET_RADIUS * magnetMultiplier;
     for (let index = this.mugs.length - 1; index >= 0; index--) {
@@ -104,6 +145,10 @@ export class AleMugField {
       const deltaZ = knightPosition.z - mug.position.z;
       const distance = Math.hypot(deltaX, deltaZ);
 
+      if (mug.isAirborne) {
+        mug.update(deltaSeconds);
+        continue;
+      }
       if (distance <= COLLECT_RADIUS) {
         mug.dispose();
         this.mugs.splice(index, 1);

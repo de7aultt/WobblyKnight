@@ -1,0 +1,103 @@
+.boss-hud {
+  position: absolute;
+  top: 5rem;
+  left: 50%;
+  width: min(60vw, 34rem);
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.boss-hud--hidden {
+  opacity: 0;
+}
+
+.boss-hud__title {
+  margin-bottom: 0.35rem;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffd9d0;
+  text-shadow: 0 2px 0 #4a0d12, 0 0 14px rgba(255, 60, 60, 0.6);
+}
+
+.boss-hud__track {
+  position: relative;
+  height: 1.7rem;
+  overflow: hidden;
+  background: #2a0d12;
+  border: 3px solid #6b1118;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+}
+
+.boss-hud__damage,
+.boss-hud__fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+.boss-hud__damage {
+  background: #f1d4a0;
+  transition: width 0.7s ease-out 0.35s;
+}
+
+.boss-hud__fill {
+  background: linear-gradient(180deg, #ff5a4d 0%, #b3141f 100%);
+  box-shadow: 0 0 14px rgba(255, 70, 60, 0.7);
+  transition: width 0.12s ease-out;
+}
+
+.boss-banner {
+  position: absolute;
+  top: 28%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
+  animation: boss-banner-sweep 2.8s ease-out forwards;
+}
+
+.boss-banner__headline {
+  font-size: clamp(2.4rem, 8vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ff5a4d;
+  text-shadow: 0 4px 0 #4a0d12, 0 0 36px rgba(255, 60, 60, 0.75);
+}
+
+.boss-banner__subline {
+  margin-top: 0.4rem;
+  font-size: clamp(1rem, 2.6vw, 1.5rem);
+  font-weight: 700;
+  color: #ffe4d6;
+  text-shadow: 0 2px 0 #4a0d12;
+}
+
+@keyframes boss-banner-sweep {
+  0% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+
+  12% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  80% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}

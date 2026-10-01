@@ -15,6 +15,7 @@ const DECELERATION_RATE = 7;
 const TURN_SPEED = 14;
 const KNIGHT_RADIUS = 0.7;
 const WALK_CYCLE_RATE = 2.2;
+const KNOCK_DECAY = 5;
 
 function shortestAngle(from: number, to: number): number {
   const difference = to - from;
@@ -32,6 +33,7 @@ export class Player {
   private readonly acceleration = new THREE.Vector3();
   private readonly moveDirection = new THREE.Vector3();
   private readonly desiredVelocity = new THREE.Vector3();
+  private readonly knockVelocity = new THREE.Vector3();
   private readonly pose: KnightPose = { walkPhase: 0, speedRatio: 0, tilt: { pitch: 0, roll: 0 } };
   private yaw = 0;
 
@@ -52,6 +54,21 @@ export class Player {
 
   get isDashing(): boolean {
     return this.dash.isActive;
+  }
+
+  get flailSpeed(): number {
+    return this.chains.reduce((fastest, chain) => Math.max(fastest, chain.tipSpeed), 0);
+  }
+
+  knockback(directionX: number, directionZ: number, speed: number): void {
+    this.knockVelocity.x += directionX * speed;
+    this.knockVelocity.z += directionZ * speed;
+  }
+
+  nudge(offsetX: number, offsetZ: number): void {
+    this.rig.root.position.x += offsetX;
+    this.rig.root.position.z += offsetZ;
+    clampToArena(this.rig.root.position, KNIGHT_RADIUS);
   }
 
   get dashCooldownRatio(): number {
@@ -120,9 +137,17 @@ export class Player {
   private moveBody(deltaSeconds: number): void {
     const position = this.rig.root.position;
     position.addScaledVector(this.velocity, deltaSeconds);
+    position.addScaledVector(this.knockVelocity, deltaSeconds);
+    this.knockVelocity.multiplyScalar(Math.exp(-KNOCK_DECAY * deltaSeconds));
     const contact = clampToArena(position, KNIGHT_RADIUS);
-    if (contact.hitX) this.velocity.x = 0;
-    if (contact.hitZ) this.velocity.z = 0;
+    if (contact.hitX) {
+      this.velocity.x = 0;
+      this.knockVelocity.x = 0;
+    }
+    if (contact.hitZ) {
+      this.velocity.z = 0;
+      this.knockVelocity.z = 0;
+    }
   }
 
   private updateFacing(deltaSeconds: number): number {

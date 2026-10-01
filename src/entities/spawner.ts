@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import type { GameEventBus } from '../core/events';
 import { applyCrowdSeparation } from '../physics/crowdSeparation';
 import { ARENA_HALF } from '../render/arenaLayout';
+import { Boss } from './boss';
+import type { CombatTarget } from './combatTarget';
 import { Enemy } from './enemy';
 import type { EnemyKind } from './enemyTypes';
 
@@ -17,36 +19,105 @@ const SPAWN_CORNER_MARGIN = 3.5;
 const MIN_PLAYER_DISTANCE = 8;
 const PLACEMENT_ATTEMPTS = 8;
 const PLAYER_SEPARATION_RADIUS = 0.8;
+const BOSS_TRIGGER_SECONDS = 90;
+const BOSS_TRIGGER_LEVEL = 5;
+const BOSS_TRIGGER_DEFEATS = 50;
+const BOSS_SPAWN_DISTANCE = 8;
 
 export class Spawner {
   readonly enemies: Enemy[] = [];
+  readonly targets: CombatTarget[] = [];
+  boss: Boss | null = null;
   private active = false;
+  private bossTriggered = false;
   private elapsed = 0;
   private spawnTimer = 0;
+  private defeatedCount = 0;
+  private reachedLevel = 1;
   private readonly spawnPoint = new THREE.Vector2();
 
   constructor(
     private readonly scene: THREE.Scene,
     private readonly events: GameEventBus
-  ) {}
+  ) {
+    events.on('LEVEL_UP', ({ level }) => {
+      this.reachedLevel = level;
+    });
+  }
 
   activate(playerPosition: THREE.Vector3): void {
     this.active = true;
     for (let index = 0; index < INITIAL_GOBLINS; index++) this.spawn('goblin', playerPosition);
   }
 
-  update(deltaSeconds: number, playerPosition: THREE.Vector3): void {
-    if (this.active) this.runSpawnTimer(deltaSeconds, playerPosition);
+  update(deltaSeconds: number, playerPosition: THREE.Vector3, knightInvulnerable: boolean): void {
+    if (this.active) {
+      if (this.shouldTriggerBoss()) this.startBossEvent(playerPosition);
+      if (!this.boss) this.runSpawnTimer(deltaSeconds, playerPosition);
+    }
 
+    this.updateEnemies(deltaSeconds, playerPosition);
+    this.updateBoss(deltaSeconds, playerPosition, knightInvulnerable);
+    this.rebuildTargets();
+  }
+
+  private shouldTriggerBoss(): boolean {
+    if (this.bossTriggered) return false;
+    return (
+      this.elapsed >= BOSS_TRIGGER_SECONDS ||
+      this.reachedLevel >= BOSS_TRIGGER_LEVEL ||
+      this.defeatedCount >= BOSS_TRIGGER_DEFEATS
+    );
+  }
+
+  private startBossEvent(playerPosition: THREE.Vector3): void {
+    this.bossTriggered = true;
+    this.enemies.forEach((enemy) => {
+      enemy.state = 'DEAD';
+    });
+
+    let directionX = -playerPosition.x;
+    let directionZ = -playerPosition.z;
+    let length = Math.hypot(directionX, directionZ);
+    if (length < 1) {
+      directionX = 1;
+      directionZ = 1;
+      length = Math.SQRT2;
+    }
+    this.boss = new Boss(
+      this.events,
+      (directionX / length) * BOSS_SPAWN_DISTANCE,
+      (directionZ / length) * BOSS_SPAWN_DISTANCE
+    );
+    this.scene.add(this.boss.rig.root);
+  }
+
+  private updateEnemies(deltaSeconds: number, playerPosition: THREE.Vector3): void {
     applyCrowdSeparation(this.enemies, playerPosition, PLAYER_SEPARATION_RADIUS);
     for (let index = this.enemies.length - 1; index >= 0; index--) {
       const enemy = this.enemies[index];
       enemy.update(deltaSeconds, playerPosition);
       if (enemy.state !== 'DEAD') continue;
+      this.defeatedCount += 1;
       this.events.emit('ENEMY_DEFEATED', { x: enemy.position.x, z: enemy.position.z });
       enemy.dispose();
       this.enemies.splice(index, 1);
     }
+  }
+
+  private updateBoss(deltaSeconds: number, playerPosition: THREE.Vector3, knightInvulnerable: boolean): void {
+    if (!this.boss) return;
+    this.boss.update(deltaSeconds, playerPosition, knightInvulnerable);
+    if (this.boss.state !== 'DEFEATED') return;
+    this.boss.dispose();
+    this.boss = null;
+    this.spawnTimer = SLOWEST_INTERVAL_SECONDS;
+  }
+
+  private rebuildTargets(): void {
+    this.targets.length = 0;
+    this.enemies.forEach((enemy) => this.targets.push(enemy));
+    if (this.boss) this.targets.push(this.boss);
   }
 
   private runSpawnTimer(deltaSeconds: number, playerPosition: THREE.Vector3): void {

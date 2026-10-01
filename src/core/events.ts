@@ -16,6 +16,17 @@ export interface GameEvents {
   LEVEL_UP: { level: number };
   PERK_ACQUIRED: { perkId: PerkId; level: number };
   DASH_COOLDOWN: { ratio: number };
+  MUG_COLLECTED: void;
+  ENEMY_HIT: { heavy: boolean };
+  DASH_STARTED: void;
+  FLAIL_SPEED: { speed: number };
+  BOSS_SPAWNED: void;
+  BOSS_LANDED: void;
+  BOSS_TELEGRAPH: void;
+  BOSS_STUNNED: void;
+  BOSS_SLAM: { dirX: number; dirZ: number };
+  BOSS_HEALTH: { ratio: number };
+  BOSS_DEFEATED: { x: number; z: number };
 }
 
 type Handler<Payload> = (payload: Payload) => void;
