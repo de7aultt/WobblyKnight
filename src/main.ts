@@ -77,6 +77,7 @@ function bootstrap(): void {
   loop.onTick((delta, elapsed) => {
     events.emit('TICK', { delta, elapsed });
     player.update(delta);
+    events.emit('DASH_COOLDOWN', { ratio: player.dashCooldownRatio });
     spawner.update(delta, player.position);
     combat.update(delta, player.chains, spawner.enemies, player.position, player.isDashing);
     aleMugs.update(delta, player.position, stats.magnetMultiplier, () => progression.collectMug());

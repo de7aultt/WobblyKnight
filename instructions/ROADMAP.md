@@ -129,7 +129,7 @@
 
 ---
 
-### [ ] QOL 4: Dash Cooldown Visual & 5-Second Timer
+### [x] QOL 4: Dash Cooldown Visual & 5-Second Timer
 - **Recommended Model:** `Claude 3.5 / 3.7 Sonnet`
 - **Scope:**
   - Increase Drunken Dash cooldown to 5 seconds.

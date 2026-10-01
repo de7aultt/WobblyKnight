@@ -54,6 +54,10 @@ export class Player {
     return this.dash.isActive;
   }
 
+  get dashCooldownRatio(): number {
+    return this.dash.cooldownRatio;
+  }
+
   applyStats(): void {
     if (this.stats.hasDoubleFlail && this.units.length < 2) this.equipFlail(this.rig.leftHandSocket);
     this.units.forEach((unit) => unit.setReach(this.stats.chainReach));

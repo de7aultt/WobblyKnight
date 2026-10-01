@@ -25,28 +25,39 @@ export function toRoman(value: number): string {
 interface PerkSlot {
   element: HTMLElement;
   badge: HTMLElement;
+  cooldownOverlay: HTMLElement | null;
 }
 
-function replayPop(element: HTMLElement): void {
-  element.classList.remove('perk-slot--pop');
+function replayAnimation(element: HTMLElement, className: string): void {
+  element.classList.remove(className);
   void element.offsetWidth;
-  element.classList.add('perk-slot--pop');
+  element.classList.add(className);
 }
 
 function createSlot(perk: PerkDefinition): PerkSlot {
   const element = document.createElement('div');
   element.className = `perk-slot perk-slot--${perk.tag}`;
   element.title = `${t(perk.titleKey)} - ${t(perk.descKey)}`;
+  element.addEventListener('animationend', () => {
+    element.classList.remove('perk-slot--pop', 'perk-slot--ready');
+  });
 
   const icon = document.createElement('span');
   icon.className = 'perk-slot__icon';
   icon.textContent = perk.icon;
+  element.append(icon);
+
+  let cooldownOverlay: HTMLElement | null = null;
+  if (perk.id === 'drunken_dash') {
+    cooldownOverlay = document.createElement('span');
+    cooldownOverlay.className = 'perk-slot__cooldown';
+    element.append(cooldownOverlay);
+  }
 
   const badge = document.createElement('span');
   badge.className = 'perk-slot__badge';
-
-  element.append(icon, badge);
-  return { element, badge };
+  element.append(badge);
+  return { element, badge, cooldownOverlay };
 }
 
 export function mountPerkTray(root: HTMLElement, events: GameEventBus): void {
@@ -55,6 +66,7 @@ export function mountPerkTray(root: HTMLElement, events: GameEventBus): void {
   root.append(tray);
 
   const slots = new Map<PerkId, PerkSlot>();
+  let previousCooldownRatio = 0;
 
   events.on('PERK_ACQUIRED', ({ perkId, level }) => {
     let slot = slots.get(perkId);
@@ -66,6 +78,14 @@ export function mountPerkTray(root: HTMLElement, events: GameEventBus): void {
       tray.append(slot.element);
     }
     slot.badge.textContent = toRoman(level);
-    replayPop(slot.element);
+    replayAnimation(slot.element, 'perk-slot--pop');
+  });
+
+  events.on('DASH_COOLDOWN', ({ ratio }) => {
+    const slot = slots.get('drunken_dash');
+    if (!slot?.cooldownOverlay || ratio === previousCooldownRatio) return;
+    slot.cooldownOverlay.style.height = `${ratio * 100}%`;
+    if (ratio === 0 && previousCooldownRatio > 0) replayAnimation(slot.element, 'perk-slot--ready');
+    previousCooldownRatio = ratio;
   });
 }

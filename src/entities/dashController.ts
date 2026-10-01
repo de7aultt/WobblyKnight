@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 const DASH_SECONDS = 0.28;
-const DASH_COOLDOWN_SECONDS = 3;
+const DASH_COOLDOWN_SECONDS = 5;
 const DASH_JUMP_HEIGHT = 1;
 const DASH_SPIN_ROTATIONS = 2;
 
@@ -19,6 +19,10 @@ export class DashController {
 
   get progress(): number {
     return this.isActive ? 1 - this.remaining / DASH_SECONDS : 0;
+  }
+
+  get cooldownRatio(): number {
+    return Math.min(Math.max(this.cooldown / DASH_COOLDOWN_SECONDS, 0), 1);
   }
 
   get height(): number {

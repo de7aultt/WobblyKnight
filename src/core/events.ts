@@ -15,6 +15,7 @@ export interface GameEvents {
   PROGRESS_CHANGED: ProgressSnapshot;
   LEVEL_UP: { level: number };
   PERK_ACQUIRED: { perkId: PerkId; level: number };
+  DASH_COOLDOWN: { ratio: number };
 }
 
 type Handler<Payload> = (payload: Payload) => void;

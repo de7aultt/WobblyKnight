@@ -22,7 +22,7 @@ export const en = {
   'perk.doubleMorningstar.title': 'Double Morningstar',
   'perk.doubleMorningstar.desc': 'A second flail swings from your other hand.',
   'perk.drunkenDash.title': 'Drunken Dash',
-  'perk.drunkenDash.desc': 'Press Space for an explosive forward tumble. 3 second cooldown.',
+  'perk.drunkenDash.desc': 'Press Space for an explosive forward tumble. 5 second cooldown.',
   'perk.spikeBoots.title': 'Spike Boots',
   'perk.spikeBoots.desc': 'Enemies crowding your body get kicked for damage.',
   'perk.aleMagnet.title': 'Ale Magnet',
